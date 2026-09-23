@@ -14,8 +14,8 @@
 
 Qiven SHALL introduce a two-level dependency system:
 
-1. repositories publish dependency declarations describing semantic requirements;
-2. a workspace resolver produces one immutable WorkspaceGeneration selecting exact repository revisions and local materialization identities for the complete graph.
+1. repositories publish required and provided contract declarations at exact source revisions;
+2. a workspace lock records one validated, immutable revision snapshot, with a WorkspaceGeneration independent of local materialization paths; operation-specific build, tooling, and cognition closures project from that snapshot.
 
 CMake, Python tools, Devkit Operator entry points, and TCA consume that resolved generation. They do not each discover repositories independently.
 
@@ -41,7 +41,7 @@ qiven-workspace/
 
 The repository carries dependency-control data and bootstrap only. It owns no product semantics.
 
-A neutral repository is required because no current product repository can own a graph that also contains itself without creating an ownership/bootstrap ambiguity.
+A separate minimal control repository is the proposed authority for dependency selection after owner acceptance. It must not become the authority for qiven-context's canonical cognition or for execution RuntimeGeneration. The control repository's own Git revision is attested in receipts outside its lock, avoiding a self-referential hash.
 
 ### 1.2 Repository dependency manifest
 
@@ -51,7 +51,7 @@ Every participating repository carries:
 .qiven/dependencies.json
 ~~~
 
-The file states semantic dependency edges, not local paths and not exact workspace peer commits.
+The file states provided contracts and required semantic dependency edges, not local paths and not exact workspace peer commits. A selected provider revision must declare a matching provision; syntactic matching is necessary but does not prove ABI or behavioral compatibility. Changes to a provision require provider-owned compatibility evidence and the consumer integration gates that exercise it.
 
 Example for Runtime:
 
@@ -59,6 +59,7 @@ Example for Runtime:
 {
   "schema": "qiven-dependencies-v1",
   "repository": "qiven-runtime",
+  "provides": [{"contract": "qiven-runtime-api-v1", "targets": ["qiven::runtime"]}],
   "dependencies": [
     {
       "id": "qiven-foundation",
@@ -89,7 +90,7 @@ Example for Runtime:
 }
 ~~~
 
-A contract identifier is explicit Qiven vocabulary. Version 1 does not require SemVer for internal repositories.
+A contract identifier is explicit Qiven vocabulary. Version 1 does not require SemVer for internal repositories. The resolver rejects an undeclared provision, a target-contract mismatch, or a change that lacks the contract's prescribed validation; a shared name alone never authorizes a revision upgrade. Third-party package and tool contracts similarly identify their actual provided package/tool surfaces, with their own provenance evidence.
 
 ### 1.3 Workspace manifest
 
@@ -127,18 +128,22 @@ Example:
     "qiven-third-party-win": {
       "url": "https://github.com/JasonHuang3D/qiven-third-party-win.git",
       "platform": "windows"
+    },
+    "qiven-docs": {
+      "url": "https://github.com/JasonHuang3D/qiven-docs.git",
+      "selection": "only-when-referenced"
     }
   }
 }
 ~~~
 
-Dependency edges remain owned by the repositories that require them; the workspace manifest does not become another architecture document.
+Dependency edges remain owned by the repositories that require them; the workspace manifest does not become another architecture document. The example lists a baseline universe, not an assertion that every listed repository enters every build or activation. qiven-docs enters a TCA source closure only when policy explicitly references its deliberation records, consistent with the CA-0 inventory.
 
 ### 1.4 Workspace lock
 
-workspace.lock.json records the exact resolved closure.
+workspace.lock.json records exact selected revisions for the declared snapshot. The following is an illustrative excerpt, not a complete valid lock; a real lock includes every selected node (including Context and Math where selected), a digest of each revision's dependency/provision declaration, and all required platform/variant/slot identities.
 
-Example:
+Example excerpt:
 
 ~~~json
 {
@@ -176,7 +181,7 @@ Example:
 }
 ~~~
 
-The generation digest is computed over canonical sorted resolution content. It excludes volatile absolute paths and timestamps.
+The generation digest is computed over canonical resolution content as specified in §10. It excludes volatile absolute paths and timestamps. A receipt also binds the control repository revision and its manifest/lock blob digests; the control repository is not recursively listed as a node in its own lock.
 
 ---
 
@@ -188,11 +193,11 @@ The resolver depends on Devkit while Devkit itself is a node in the graph. That 
 
 qiven-workspace/bootstrap/qiven-bootstrap.py is standard-library-only and performs only:
 
-1. locate the workspace root from explicit invocation context or a workspace marker;
+1. locate exactly one workspace root from an explicit invocation context or an unambiguous marker;
 2. parse and validate the lock's bootstrap subset;
-3. locate the exact locked Devkit checkout;
-4. verify its Git identity;
-5. execute the Devkit resolver/operator.
+3. map the locked Devkit node to an explicitly supplied or registered local checkout (a path is a locator, not a selector);
+4. verify repository identity, commit/tree, and the required clean state before import;
+5. execute the locked Devkit resolver/operator.
 
 It does not:
 
@@ -219,91 +224,47 @@ They carry no Devkit root fallback and no consumer-local Devkit pin.
 
 The architecture rejects shim-plus-pin as dependency resolution; it does not reject a trivial launcher for usability.
 
+### 2.3 Standalone and trust bootstrap
+
+A clean single-repository clone cannot derive a unique authoritative workspace lock without an additional trusted input. CI or an operator supplies an exact workspace-control revision/lock and permitted source acquisition; local launchers may find a unique nearby marker, then validate its identity and report it. Ambiguous, missing, or changed workspace identity fails visibly. The bootstrap never treats an arbitrary sibling checkout or environment value as a revision decision. ADR-0046's self-contained gate path remains in force for repositories until this exact standalone/CI proof passes; no managed snapshot is deleted merely because a new launcher exists. Control-repo branch state and product-repo candidate branches are reported separately, and neither changes qiven-context's canonical Git authority.
+
 ---
 
-## 3. Resolution Algorithm
+## 3. Resolution and Update Algorithm
 
-The Devkit resolver executes before CMake configure and before TCA source publication.
+Normal build/gate operation validates a committed lock; it never floats to a newer sibling revision. The Devkit resolver runs before CMake configure or TCA source publication.
 
-### Step 1 — Establish workspace identity
+### Step 1 — Establish the control identity
 
-Load workspace.json and reject unknown schema, duplicate node, invalid repository identity, or unsupported platform.
+Load an exact workspace-control revision, workspace.json, and workspace.lock.json. Reject unknown schemas, duplicate JSON keys/node IDs, unsupported platforms, and ambiguous workspace roots. Record control commit plus manifest and lock blob digests.
 
-### Step 2 — Load repository declarations
+### Step 2 — Validate locked selection
 
-For every selected workspace node, read the exact revision's .qiven/dependencies.json.
+For every selected node, validate stable repository identity, exact commit and tree, declared platform/variant/slot, and local availability. Materialization maps an already selected node to a path; it does not select a revision. A missing declaration is legal only for an explicit leaf class. The Git object and worktree must agree with the locked commit/tree; authoritative paths reject dirty state.
 
-A missing declaration is legal only for an explicitly declared leaf class such as a pure toolchain artifact repository.
+### Step 3 — Load declarations from those exact revisions
 
-### Step 3 — Build the complete directed graph
+Read .qiven/dependencies.json from each locked source revision, verify its recorded digest, and construct every required edge and provided contract before materialization. Unknown or undeclared providers, incomplete transitive closure, missing targets/packages, and architectural cycles fail typed; an explicit bootstrap edge is not a semantic-layer cycle.
 
-Construct every edge before selecting materialization.
+### Step 4 — Validate every consumer edge
 
-Architectural cycles among semantic layers are errors unless an explicit cycle contract exists. The Workspace bootstrap to Devkit handoff is a bootstrap boundary, not a semantic dependency cycle.
+For each required edge, check provider identity, contract provision, platform/variant/slot, and any required compatibility proof. Validate all incoming edges even when one CMake target already exists. A contract string cannot replace provider gates or integration evidence.
 
-### Step 4 — Validate compatibility constraints
+### Step 5 — Select an operation projection
 
-Every incoming edge to a shared node is checked before any consumer builds.
+The committed snapshot has one WorkspaceGeneration. The build, tool invocation, or activation request records the nodes reachable through its declared operation-relevant edge kinds, plus any explicit cognition sources, and a projection digest. The edge-filter policy is versioned and fail-closed; it cannot omit an input the operation actually reads. A change outside an operation's selected inputs does not by itself invalidate its derivative. The TCA projection additionally records selected path filters and content digests per the accepted source-lock contract.
 
-Example:
+### Step 6 — Publish a resolution receipt
 
-~~~text
-runtime -> foundation-api-v1
-draft   -> foundation-api-v1
-math    -> foundation-api-v1
-~~~
+The receipt includes the control commit, manifest/lock digests, accepted base WorkspaceGeneration, effective candidate generation where applicable, operation projection and digest, all selected node commits/trees and declaration digests, local paths, candidate/main provenance, dirty/override status, resolver build identity, target repository, and operation class. Absolute paths belong only in local evidence.
 
-can share one Foundation node.
+### Step 7 — Generate and validate adapters
 
-If one consumer requires an incompatible contract, resolution fails even if CMake could technically produce a target.
+Generate deterministic CMake/tool/source adapters under .generated-temp/workspace/<generation>/<projection>/, the approved generated-artifact root. Each adapter embeds the generation and projection identities. A configure-time guard rejects missing/stale adapters and a target whose producer is not the validated node.
 
-### Step 5 — Select exact revisions
+### Explicit lock update transaction
 
-The workspace lock supplies the exact commits for normal build/gate operation. Revision movement is an explicit lock transaction, never a configure-time float.
-
-### Step 6 — Validate local materialization
-
-Map each locked node to a local checkout.
-
-Version 1 MAY use the existing sibling workspace layout as one materialization mapping, but sibling placement is no longer the source of truth.
-
-Validation checks:
-
-- repository identity;
-- exact commit;
-- exact tree;
-- clean state where authoritative operation requires it;
-- platform and variant.
-
-### Step 7 — Publish a resolution receipt
-
-The receipt includes:
-
-- workspace generation digest;
-- manifest digest;
-- lock digest;
-- each node commit and tree;
-- local materialization path;
-- dirty or override state;
-- resolver build identity;
-- target repository;
-- operation class.
-
-Absolute paths belong in the receipt, not in WorkspaceGeneration identity.
-
-### Step 8 — Generate consumer adapters
-
-The resolver produces deterministic derivatives under Qiven's approved generated-artifact location.
-
-Suggested forms:
-
-~~~text
-.generated-temp/workspace/<generation>/qiven-deps.cmake
-.generated-temp/workspace/<generation>/tool-paths.json
-.generated-temp/workspace/<generation>/source-closure.json
-~~~
-
-All derive from the same lock.
+Revision movement is a separate proposal: stage all new source commits; read their declarations; validate the complete candidate graph and affected integration gates; create a new lock and generation; compare old/new closures; publish the workspace-control commit only through its governed review. Multi-repository commits cannot land atomically, so the old accepted generation remains runnable until the new lock and required source revisions are reachable and verified. Candidate clean revisions may be validated with provenance without pretending that an unmerged branch is canonical main. Failure retains the old generation and produces a typed receipt; it never falls back to a different checkout.
 
 ---
 
@@ -314,7 +275,10 @@ All derive from the same lock.
 A consuming CMakeLists becomes structurally similar to:
 
 ~~~cmake
-include("<resolved qiven-deps.cmake>")
+if(NOT DEFINED QIVEN_RESOLUTION_FILE)
+    message(FATAL_ERROR "run the workspace preflight and pass its exact adapter")
+endif()
+include("${QIVEN_RESOLUTION_FILE}")
 
 qiven_workspace_require(qiven-foundation)
 qiven_workspace_require(qiven-context-draft)
@@ -345,11 +309,12 @@ The generated adapter already knows the selected root and identity.
 It only:
 
 1. verifies the requested dependency exists in the validated resolution;
-2. materializes the node once if its target is absent;
-3. verifies expected public target names after materialization;
-4. records the materialization in configure evidence.
+2. checks that the requesting consumer has a validated direct edge and that the adapter's lock/projection identity matches preflight;
+3. materializes the selected node once, or verifies that an existing namespaced target was produced by that same selected node;
+4. verifies promised public target names, usage requirements, and package targets after materialization;
+5. records the producer and materialization in configure evidence.
 
-It never chooses a revision.
+It never chooses a revision or treats an unrelated pre-existing CMake target as satisfying the edge. For qiven-third-party-win it materializes the selected package subdirectory, preserving the verified Visual Studio project-reference behavior and package provenance; the adapter must not change EXCLUDE_FROM_ALL semantics without a generator-level regression gate.
 
 ### 4.3 The target-presence bug is structurally removed
 
@@ -397,7 +362,7 @@ A developer MAY supply an untracked local file such as:
 .qiven-workspace.local.json
 ~~~
 
-to redirect materialization or select an explicit candidate revision.
+to redirect materialization or select an explicit candidate revision. A path-only relocation of the same locked objects leaves WorkspaceGeneration unchanged. Selecting a different clean commit produces a distinct **CandidateWorkspaceGeneration** computed over the effective complete closure by the same byte algorithm; it never impersonates the committed lock's generation. Dirty worktrees have only a local transient identity, never an authoritative immutable generation. Every adapter and receipt distinguishes accepted base, effective candidate, and source ref.
 
 The resolver labels affected nodes as one of:
 
@@ -410,8 +375,8 @@ candidate-dirty
 ### 5.2 Publication law
 
 - local compile/test MAY use candidate-clean or candidate-dirty overlays;
-- a gate claiming exact cross-repository evidence MAY use candidate-clean when commit/tree are recorded;
-- publication, acceptance, CI identity, RuntimeGeneration publication, and ActivationGeneration publication reject candidate-dirty dependencies;
+- a gate claiming exact cross-repository candidate evidence MAY use candidate-clean only under its distinct CandidateWorkspaceGeneration, with commit/tree, branch/ref, control revision, and every selected source recorded; that evidence does not claim canonical-main status;
+- publication, acceptance, CI identity, RuntimeGeneration publication, and ActivationGeneration publication reject candidate-dirty dependencies and separately apply their existing candidate-versus-canonical rules;
 - no override is invisible.
 
 A later sealed-candidate-tree mechanism may relax this only through a separately accepted design.
@@ -488,7 +453,7 @@ Managed Operator snapshots may remain during migration. The target endpoint is o
 
 ### 9.1 WorkspaceGeneration is the repository-identity parent
 
-The accepted TCA architecture already requires exact external repositories and ActivationGeneration.
+ADR-0050 and the CA-0 exit report already require CA-1 to build a complete external source lock from Context, Devkit, Foundation, Runtime, and any additional source actually used by selection, with repository commit/tree, path filter, and per-file digest. CA-1 may implement that bounded accepted design before Workspace Resolution is available. WR-7 is a later selector migration, not permission to replace that lock with one opaque workspace digest.
 
 The revised composition is:
 
@@ -502,19 +467,18 @@ WorkspaceGeneration
                     +--> ActivationGeneration
 ~~~
 
-TCA may select a subset of files, but it does not independently decide which Runtime, Foundation, Devkit, or other repository revision is current.
+After a shadow comparison and accepted migration, TCA may select a subset of files but takes the revision of each selected repository from the workspace lock. Until then, the accepted CA-1 selector and lock remain authoritative. The activation source projection must contain only selected inputs; a Toolchain, Math, or unrelated third-party movement does not rotate ActivationGeneration merely because the full WorkspaceGeneration changed. The parent workspace digest is provenance in a receipt envelope, not an input to the selected source-lock or ActivationGeneration content digest.
 
 ### 9.2 TCA source-lock shape
 
-The activation source lock should reference:
+The activation source lock SHALL contain, for each selected repository and file:
 
-- WorkspaceGeneration digest;
-- selected repository node ID;
-- selected path;
-- path content digest;
+- operation-projection digest (after migration); the parent WorkspaceGeneration is separately recorded in the provenance envelope, outside the source-lock/ActivationGeneration content hash;
+- stable repository node ID, repository identity, exact commit and tree;
+- selected path filter, concrete selected path, and per-file content digest;
 - capability-surface entry ID where applicable.
 
-Repository revision identity is inherited from WorkspaceGeneration.
+The actual commit/tree values remain present, not merely inherited by pointer. The lock is independently verifiable and rebuildable from exact local Git objects. Context's canonical bundle/execution RuntimeGeneration and activation sidecar remain separate. Cache keys use the complete selected source-lock content digest and accepted policy/task inputs; a workspace-wide digest alone must not cause unrelated invalidation. Validation still proves that each selected revision belongs to the attested parent WorkspaceGeneration when a migrated receipt is issued.
 
 ### 9.3 Capability discovery becomes generation-bound
 
@@ -531,25 +495,7 @@ This is stronger than ambient symbol discovery and cheaper than asking the LLM t
 
 ## 10. Workspace Generation Identity
 
-The digest SHALL be deterministic.
-
-Conceptually:
-
-~~~text
-sha256(
-    workspace-schema-version
-    + canonical-workspace-manifest
-    + sorted(
-        node-id,
-        repository-identity,
-        commit-oid,
-        tree-oid,
-        platform,
-        variant,
-        dependency-contract-digest
-      )
-)
-~~~
+The digest SHALL be deterministic and free of self-reference. Version 1 defines the byte algorithm before implementation: validate the strict schema, reject duplicate keys and numbers outside the schema's integer vocabulary, encode the manifest and lock *without the generation field* using one specified canonical JSON algorithm (RFC 8785), prefix a domain-separated schema identifier, then SHA-256 those bytes. The lock covers every selected node's stable repository identity, commit/tree, platform/variant/slot, and exact dependency/provision manifest digest. The resolver recomputes and compares the stored generation; independent implementations and golden byte vectors must agree. The workspace-control commit and its manifest/lock blob digests are receipt provenance, not recursive generation inputs.
 
 Excluded:
 
@@ -617,7 +563,7 @@ local overlay                      non-canonical development input
 resolution receipt                 evidence
 ~~~
 
-The lock cannot be silently regenerated as a side effect of CMake configure.
+The lock cannot be silently regenerated as a side effect of CMake configure. The accepted qiven-context Git authority and RuntimeGeneration remain distinct from the workspace control repository. Before owner acceptance of a superseding ADR, ADR-0046 and ADR-0050 govern the existing pins and TCA source lock respectively.
 
 ---
 

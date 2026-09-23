@@ -16,15 +16,15 @@ Those mechanisms were useful while the workspace was small. They are now a distr
 
 Qiven SHALL introduce one explicit **Workspace Resolution** layer with these properties:
 
-1. Every first-party repository, tool repository, and governed third-party singleton is a node in one machine-readable dependency graph.
-2. One immutable **WorkspaceGeneration** selects the exact revision and content identity of every resolved node.
+1. Every participating first-party repository, tool repository, and governed third-party singleton is a node in one machine-readable dependency graph; the workspace-control repository supplies the root and is attested separately.
+2. One immutable **WorkspaceGeneration** selects the exact revision and content identity of every node in a declared workspace snapshot; operation-specific closures are explicit projections of that snapshot.
 3. Dependency constraints are validated before any CMake target, Python module, activation source, or tool implementation is materialized.
 4. Repositories declare semantic dependency edges and compatibility contracts, but do not each carry an independent exact SHA for the same workspace peer.
 5. CMake consumes an already-resolved graph and does not perform repository discovery.
 6. A thin launcher shim MAY remain as a user-interface entry point, but a shim MUST NOT select dependency versions or discover governed implementations.
 7. Devkit, Toolchain, Foundation, Runtime, Context Draft, Math, and qiven-third-party-win resolve through the same workspace closure.
-8. TCA's accepted external-source lock is derived from the same WorkspaceGeneration rather than implementing a second repository resolver.
-9. Publication and authoritative gates reject unresolved, conflicting, stale, or dirty dependency closure.
+8. Once qualified, TCA takes repository selection from WorkspaceGeneration while retaining its independently verifiable, complete external-source lock with commit/tree and selected-path content digests. The accepted CA-1 lock remains authoritative until that migration is accepted.
+9. Publication and authoritative gates on migrated paths reject unresolved, conflicting, stale, or dirty dependency closure.
 10. Process singleton rules such as RuntimeHost remain separate from dependency singleton rules.
 
 The immediate goal is not a new package ecosystem. It is to turn a hidden, attention-dependent multi-repository topology into explicit machine state.
@@ -102,7 +102,7 @@ Exactness is correct. Replicating the exact revision decision into every consume
 
 ### 1.5 Accepted TCA already needs the missing abstraction
 
-The accepted TCA architecture requires an exact multi-repository source lock covering Devkit, Foundation, Runtime, and other selected repositories, and creates an ActivationGeneration from that closure.
+ADR-0050 and the accepted TCA architecture require an exact multi-repository source lock covering Context, Devkit, Foundation, Runtime, and other sources actually used by selection. The lock records repository commit/tree, selected paths, and per-file content digests; a separate ActivationGeneration is built from that closure. CA-0 has already landed in qiven-context (PR #128 and its 2026-09-24 exit report), including a bounded CA-1 batch estimate. MVP-4's real H1 and RR-0 still gate CA-1.
 
 If engineering builds continue to resolve repositories independently through CMake/shims while TCA constructs another exact source graph, Qiven will have two different multi-repository resolution systems:
 
@@ -158,7 +158,7 @@ Qiven SHALL distinguish four concerns.
 
 ### 3.1 Dependency declaration
 
-A repository states what semantic layer or capability it requires.
+A repository states what semantic layer or capability it requires, and each selected provider revision states which contracts it provides. An edge is satisfied only when the locked provider actually declares the required contract and any required integration gate passes; a matching string in two consumer manifests is not evidence of compatibility.
 
 Examples:
 
@@ -172,9 +172,7 @@ This declaration is source-controlled with the repository.
 
 ### 3.2 Workspace resolution
 
-One resolver selects the exact repository revision and content identity satisfying all declarations in the current workspace.
-
-The output is a WorkspaceGeneration.
+One resolver validates a selected set of exact repository revisions against every declaration in the workspace snapshot. An explicit lock transaction proposes revision movement; normal build and gate operations only validate the lock. The output is a WorkspaceGeneration. Build, tooling, and cognition each select a closed projection from this one validated universe; unrelated nodes do not automatically invalidate a consumer's derived artifact.
 
 ### 3.3 Materialization
 
@@ -198,13 +196,13 @@ That is not package resolution and SHALL NOT be implemented by the dependency re
 
 ### 4.1 Resolution singleton
 
-For one WorkspaceGeneration there is exactly one selected node for each tuple:
+For one WorkspaceGeneration there is exactly one selected provider for each tuple within a declared resolution domain:
 
 ~~~text
 (package-id, platform, variant, semantic-slot)
 ~~~
 
-Two dependency declarations that cannot accept the same node make resolution fail.
+Two dependency declarations that cannot accept the same node make resolution fail. The manifest MUST name the domain and slot explicitly; it must not accidentally merge incompatible platforms, variants, or independently deployable processes.
 
 ### 4.2 Build singleton
 
@@ -248,9 +246,9 @@ A launcher that searches for Devkit, selects a checkout, interprets a pin, or fa
 
 Development overlays may point at dirty worktrees for local iteration, but authoritative gates and publication require clean exact commits or a separately sealed candidate-tree identity.
 
-### WG-7 — One graph feeds engineering and cognition
+### WG-7 — One graph feeds engineering and cognition after a qualified migration
 
-The TCA external source lock SHALL consume WorkspaceGeneration's repository identity closure. Activation may further lock selected paths and content digests; it MUST NOT independently choose different repository revisions.
+ADR-0050's CA-1 source lock is a current accepted obligation and SHALL proceed on its bounded schedule. Before replacing its revision selection, a workspace adapter MUST reproduce the complete selected repository set and every commit/tree, path filter, and per-file digest in shadow mode. Once accepted, TCA SHALL select those repository revisions from WorkspaceGeneration, then produce a self-contained external-source lock with the inherited commit/tree and selected-path digests. It MUST NOT choose a conflicting revision, weaken digest checks, or read a dirty checkout. Only changes to inputs of that selected source closure (or other accepted activation inputs) invalidate ActivationGeneration; a movement of an unrelated workspace node does not.
 
 ### WG-8 — Capability discovery is generation-bound
 
@@ -264,7 +262,7 @@ Conflicting compatibility requirements, missing nodes, revision mismatch, platfo
 
 ### WG-10 — Cross-repository publication names the generation
 
-Any acceptance evidence depending on more than one Qiven repository records WorkspaceGeneration or an equivalent exact closure digest.
+Any acceptance evidence depending on more than one Qiven repository records its exact selected closure and candidate/main provenance. After migration it also names WorkspaceGeneration. A digest alone never substitutes for the auditable member revisions and source-content evidence required by that gate.
 
 ---
 
@@ -288,23 +286,26 @@ Shim-plus-pin remains valid migration history but ceases to be the target archit
 
 ### 6.2 TCA remains the cognition architecture
 
-TCA decides which cognition applies to a task. Workspace Resolution decides which exact repository universe the task, build, and cognition belong to.
+TCA decides which cognition applies to a task. Workspace Resolution selects the revision universe; each consumer projects only the nodes and paths it uses. ADR-0050's execution RuntimeGeneration remains separate. The selected TCA source lock must be self-contained so that the activation sidecar can be audited and rebuilt even if the workspace control repository is unavailable later.
 
 ~~~text
-WorkspaceGeneration
-      |
-      +--> build/tool materialization
-      |
-      +--> ActivationGeneration
-               |
-               +--> task-specific cognition
+WorkspaceGeneration -> validated build/tool closure
+                   -> selected TCA source lock (commits, trees, paths, digests)
+                            -> ActivationGeneration -> task-specific cognition
+RuntimeGeneration ------------------------------------^ (separate execution identity)
 ~~~
 
 ### 6.3 Devkit remains engineering-process owner
 
 Devkit should own resolver implementation, schemas, validation rules, generated CMake integration, and operator UX.
 
-The selected workspace graph itself should live in a dedicated minimal workspace control repository rather than inside a consumer whose own revision is one graph node.
+The selected workspace graph itself is proposed to live in a dedicated minimal workspace control repository. That repository is a candidate control-plane owner, not an already approved canonical authority. Its revision and lock provenance must be bound to each receipt; merely moving the file does not solve bootstrap or governance.
+
+---
+
+### 6.4 Acceptance and migration authority
+
+This PR is a proposal, not an amendment to accepted ADR-0046 or ADR-0050 by itself. Replacing the Devkit cross-repository pin law and changing TCA's repository selector require an owner-accepted root ADR and corresponding canonical changes. CA-0 is complete; the accepted CA-1 batch (at most three Runtime PRs, one Context policy-instance PR, and one Devkit schema PR, with its stall trigger) is not silently expanded or delayed by WR-0/WR-1. Workspace work can run alongside it. A formal re-deliberation is required before changing that schedule or claiming a new CA-2 prerequisite.
 
 ---
 
@@ -357,7 +358,7 @@ This program is complete only when:
 5. graph conflicts are caught before configure;
 6. a shared dependency revision is selected once rather than copied into every consumer;
 7. Runtime, Draft, Math, Foundation, Devkit, Toolchain, and the third-party singleton pass migration acceptance;
-8. TCA ActivationGeneration consumes the same WorkspaceGeneration closure;
+8. after a separate, evidenced migration, TCA selects the same relevant repository revisions while preserving its full source lock and separate ActivationGeneration;
 9. authoritative gates bind receipts to the workspace generation;
 10. the legacy shim-plus-pin path is deleted or retained only as an explicitly time-bounded compatibility path.
 
