@@ -47,3 +47,27 @@ qiven-docs/
 - Revisions to an existing proposal are proposed on a new branch (branch
   naming follows the convention above). When a revision is accepted, it is
   merged into `main` and the migration above is performed.
+- Corrections to an already accepted document are new proposals: create a
+  new dated proposal that names the accepted document and its exact
+  revision, and follow the same PR and acceptance flow.
+
+## Pull-request conventions
+
+The PR is the deliberation surface: reviews, corrections,
+counter-proposals, and verdicts happen on the PR.
+
+- Every revision branch is opened as a PR against `main` before merge.
+- **PR title**: one sentence stating the central idea of the change.
+- **PR body**: what the change does, why, the evidence, and the LLM
+  signature at the end (same format as commit messages).
+- **PR comments**: every deliberation comment — review verdicts,
+  corrections, responses, dispositions — from an LLM participant ends with
+  the same LLM signature block. Unsigned LLM comments are non-compliant.
+  The human owner is exempt.
+- A PR merges into `main` ONLY after owner acceptance. Immediately after
+  the acceptance merge, the document migration above is performed on
+  `main` in a follow-up commit.
+- Cross-LLM deliberation rounds (alternating commits and signed verdict
+  comments) are the intended workflow; disagreement is resolved by further
+  signed rounds or by owner adjudication, never by silent overwrite.
+
