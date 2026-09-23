@@ -218,7 +218,7 @@ Make activation an ordinary engineering boundary rather than an optional command
 - require a valid receipt before R2/R3 design, implementation publication, and review;
 - add the cognition compliance map to engineering design evidence;
 - define `qiven-cognitive-falsification-receipt-v1`;
-- add fresh-context adversarial review for required R2/R3 risks using the isolation classes defined by the acceptance protocol; H1-H4 remain separate owner-authority or real-environment evidence, never a review transport mechanism;
+- add fresh-context adversarial review using the isolation classes defined by the acceptance protocol: routine R2 may use disclosed same-family isolated context, while every R3 and milestone/release trial uses independently orchestrated isolation; typed human handoffs remain separate authority or real-environment evidence under the explicitly amended handoff contract;
 - ensure material design or task changes trigger reactivation;
 - make missing/stale/unresolved receipts fail visibly without granting new execution authority;
 - keep the current manual boot path available in shadow mode.
@@ -664,7 +664,7 @@ It accepts:
 - canonical/derived separation;
 - external task-boundary triggering;
 - independent falsification for R2/R3;
-- the owner-free fresh-review transport amendment: cognitive-review isolation is produced by the disclosed harness/orchestration classes, H1-H4 remain authority and real-environment boundaries (never review transport), and this explicitly amends the historical owner-relay reading of fresh-consumer trials;
+- the explicit ADR-0036 / Human Handoff Boundary amendment required for owner-free fresh review: mechanically verified launch and sealed transport inside an approved orchestrator cease to be inherently H1; H1 remains mandatory for owner-only credentials/devices, external isolation crossings, owner-named trust anchors, and owner-designated adjudication; existing owner-named K4/K5 gates and all H2-H4 claims remain unchanged;
 - CA-0 through CA-5 sequencing;
 - MVP-7 dual gates;
 - the decision not to revive the Python compiler.
