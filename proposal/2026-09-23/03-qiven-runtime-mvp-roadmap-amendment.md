@@ -664,6 +664,7 @@ It accepts:
 - canonical/derived separation;
 - external task-boundary triggering;
 - independent falsification for R2/R3;
+- the owner-free fresh-review transport amendment: cognitive-review isolation is produced by the disclosed harness/orchestration classes, H1-H4 remain authority and real-environment boundaries (never review transport), and this explicitly amends the historical owner-relay reading of fresh-consumer trials;
 - CA-0 through CA-5 sequencing;
 - MVP-7 dual gates;
 - the decision not to revive the Python compiler.

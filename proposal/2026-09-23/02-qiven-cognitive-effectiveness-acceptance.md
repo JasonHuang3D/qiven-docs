@@ -479,6 +479,8 @@ An author-generated test that encodes the same assumed payload, lifetime, or sta
 
 Fresh-context review has two disclosed independence classes. Routine R2 and R3 cognitive falsification MAY use a harness-created fresh agent session that receives only the sealed review package and no author reasoning trace; it is recorded as `fresh-cognitive-same-family-isolated-context`. Milestone trials and R3 governance-adjacent review require an orchestration boundary that independently creates the consumer, withholds the answer key and author trace, captures the output, and preserves the assignment record; it is recorded as `fresh-cognitive-orchestrated-isolation`. The owner approves the resulting evidence but is not the transport layer, prompt relay, or routine debugger. H1/H2/H3/H4 remain separate owner-authority or real-environment evidence where governance reserves those claims; they do not substitute for fresh cognitive review. A subagent sharing the author's conversation context qualifies under neither class.
 
+Governance note: accepting this transport model amends the historical owner-relay interpretation of fresh-consumer trials. The typed handoffs H1-H4 keep exactly their present authority and real-environment claims — none is demoted or widened. What changes is that cognitive-review isolation is no longer produced by the owner physically relaying prompts across a session boundary: the orchestration boundary carries that burden, and the owner approves evidence instead of transporting it. ADR acceptance must state this amendment explicitly against the typed-handoff contract rather than leave the two readings to coexist.
+
 ### 8.3 Receipt requirements
 
 The falsification receipt SHALL bind:

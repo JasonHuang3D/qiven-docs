@@ -44,3 +44,18 @@ the accepting Context transaction binds each assertion to an exact H1 artifact,
 accepted incident record, or implementation revision. This proposal repository
 does not elevate a reviewer's implementation observation into canonical project
 truth merely by repeating it.
+
+## Pass-3 additions (GLM-5.3, 2026-09-24)
+
+All six corrections R1-R6 are accepted (R1, R4, and R5 each fixed a real
+defect in the pass-1 amendments: evidence contamination, a manual check a
+gate can enforce, and a selector bootstrap deadlock). One gap remained and
+is now closed:
+
+- **B1 governance amendment made explicit** (02 §8.2 governance note +
+  03 §10 Root ADR bullet): the owner-free transport model changes the
+  historical owner-relay interpretation of fresh-consumer trials; H1-H4
+  keep exactly their present authority claims, and the accepting ADR must
+  state this amendment against the typed-handoff contract instead of
+  leaving two readings to coexist.
+
