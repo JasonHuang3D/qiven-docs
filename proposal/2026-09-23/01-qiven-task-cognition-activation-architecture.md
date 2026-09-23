@@ -98,6 +98,7 @@ Owns:
 - one machine-readable `runtime/cognition-activation-policy.yaml` instance;
 - one minimal `runtime/cognition-core.yaml` manifest of always-required source references;
 - schemas for Context-owned activation selectors;
+- repository-gate enforcement that every protected-class canonical record carries activation selector metadata at creation — a protected record without selectors fails the Context gate;
 - authoritative references to external engineering and architecture sources.
 
 Does not own:
@@ -134,7 +135,7 @@ Owns:
 - generic low-level types and primitives whose semantics are intrinsically foundational;
 - strict ownership, lifetime, representation, failure, portability, and cost laws;
 - a validated public-surface capability manifest for activation discovery;
-- generic hashing/digest, checked-range, immutable-byte, and result vocabulary needed by Runtime implementation.
+- generic hashing/digest, checked-range, immutable-byte, result, and growing-buffer byte-serialization vocabulary (bounded builder with fixed-width endian put/get and length-prefixed field helpers) needed by Runtime implementation, admitted under the accepted semantic-ownership criterion with a one-time zero-cost assembly comparison note.
 
 Does not own:
 
@@ -696,6 +697,8 @@ A receipt becomes invalid when:
 - a critical source is superseded or withdrawn.
 
 Changing implementation details inside an already activated design does not automatically invalidate the receipt unless task scope, boundary, or risk changes.
+
+Boundary-kind growth is a declared self-report seam: the engine cannot mechanically detect that a design introduced a boundary kind absent from the task descriptor. The independent reviewer is the backstop for this seam and MUST explicitly verify that the candidate design's boundary-kind set remains a subset of the declared task descriptor's set, or that a reactivation occurred.
 
 ---
 

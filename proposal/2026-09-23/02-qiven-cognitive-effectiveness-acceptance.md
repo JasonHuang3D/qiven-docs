@@ -235,6 +235,18 @@ Critical findings:
 - publication uses private construction plus atomic visibility;
 - tests force collision/retry behavior.
 
+#### F-08 — Fail-closed mediator availability
+
+The task enables or operates a control component whose fail-closed behavior can block ordinary work — for example a hook mediator whose governed verdicts require a reachable host process.
+
+Critical findings:
+
+- the mediator's own lifecycle is explicit: who starts it, who supervises it, and what happens when it is absent, slow, stale, or version-skewed;
+- enabling the fail-closed gate is preceded by a pre-flight self-check that verifies reachability, identity, and handshake in the target environment;
+- denial codes are diagnosable and disjoint: no-listener, admission-rejected, version-skew, and timeout are distinguishable rather than collapsed into one undifferentiated denial;
+- the real end-to-end contract — every frame of a complete transaction, over the real transport, in the real environment — is exercised before the gate is enabled;
+- comments or design text describing behavior the implementation does not perform are classified as defects, not documentation.
+
 ### 4.3 Corpus evolution
 
 A new material Qiven incident SHALL either:
@@ -358,6 +370,8 @@ Both conditions receive the same task objective, permitted tools, implementation
 
 The control is the real current process, not an intentionally weakened prompt. The activated condition receives no private hints outside the accepted bundle.
 
+Descriptor construction is condition-neutral. In the trial, the normalized task descriptor supplied to the activated condition MUST NOT carry curator-produced expert judgment: judgment-bearing fields (`boundary_kinds`, `external_contracts`, `explicit_ids`, `signals`) are populated only from mechanically derivable sources — declared repository, changed paths, path-prefix subsystem mapping, file-extension language mapping, declared phase and risk class — or are left empty. Protected rules whose selectors key on such mechanical fields count as activated; selectors requiring curator judgment are exercised in Profile B applicability fixtures only and earn no Profile C utility credit. Alternatively the same normalized descriptor may be supplied to both conditions; the choice is recorded before sealing.
+
 ### 7.2 Run count
 
 Initial MVP-7 acceptance SHALL use:
@@ -462,6 +476,8 @@ Depending on the task, accepted evidence includes:
 
 An author-generated test that encodes the same assumed payload, lifetime, or state machine is corroboration, not independent falsification.
 
+Transport channels for fresh-context review are tiered. Routine R2/R3 falsification MAY use a harness-native fresh subagent: a fresh-context agent session receiving only the sealed review package (task descriptor, bundle, candidate design and diffs, rubric) with no author reasoning trace. Its independence class is recorded as `fresh-cognitive-same-family-isolated-context` and disclosed in the receipt. Milestone and release evidence (Profile C trials, CA-5, and R3 governance-adjacent review) uses the owner-relayed isolation boundary (H1). A subagent sharing the author's conversation context is not a fresh reviewer and qualifies under neither tier.
+
 ### 8.3 Receipt requirements
 
 The falsification receipt SHALL bind:
@@ -489,6 +505,7 @@ The reviewer is explicitly asked to disprove, not summarize:
 - Can the test pass because it copied the implementation's misconception?
 - Which lower layer already owns this capability?
 - Which supposedly current rule is actually superseded, advisory, or lower-authority?
+- Does the design's boundary-kind set stay inside the task descriptor's declared set, or was a new boundary introduced without reactivation?
 - What evidence would force the design to stop or re-deliberate?
 
 ---

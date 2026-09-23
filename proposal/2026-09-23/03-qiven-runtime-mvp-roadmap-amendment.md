@@ -144,6 +144,7 @@ Build the smallest native, local, explainable path that maps a pinned RuntimeGen
 
 #### Work
 
+- land the Foundation byte-serialization vocabulary prerequisite and the runtime mechanical consolidation batch that consumes it;
 - implement task normalization and observed-versus-claimed provenance;
 - validate `runtime/cognition-core.yaml` and `runtime/cognition-activation-policy.yaml`;
 - ingest exact pinned Git/tree sources already admitted by the Runtime cognition publisher;
@@ -188,7 +189,7 @@ Make activation an ordinary engineering boundary rather than an optional command
 - require a valid receipt before R2/R3 design, implementation publication, and review;
 - add the cognition compliance map to engineering design evidence;
 - define `qiven-cognitive-falsification-receipt-v1`;
-- add fresh-context adversarial review for required R2/R3 risks;
+- add fresh-context adversarial review for required R2/R3 risks, with the tiered transport channels defined by the acceptance protocol (routine: harness-native fresh subagent with a sealed package; milestone and R3: owner-relayed isolation boundary);
 - ensure material design or task changes trigger reactivation;
 - make missing/stale/unresolved receipts fail visibly without granting new execution authority;
 - keep the current manual boot path available in shadow mode.
@@ -335,10 +336,13 @@ Keep the original MVP-4 scope and exit gate. Add only the following evidence req
 - classify the payload-contract and borrowed-lifetime failures under the scar lifecycle;
 - add regressions that fail for the actual prior implementations, not merely the final shape;
 - obtain independent evidence for the real producer payload and stored-payload lifetime;
+- resolve the connection-model contradiction (a server serving one frame per connection while the client sends two on the same connection) through an explicit design decision, proven by a real-pipe multi-frame contract test;
+- split the undifferentiated host-unavailable denial into diagnosable classes (no listener, admission rejected, version or secret skew, timeout) and remove comments or design claims the implementation does not honor;
+- ship the H1 kit with an enable-gated pre-flight self-check — host reachability, identity, and handshake must pass in the target environment before the live hook configuration is enabled;
 - rerun the real H1 until the original exit gate passes;
 - do not declare MVP-4 complete based only on local tests or a code merge.
 
-The payload owner belongs at the Runtime hook/domain boundary if Runtime stores it for later use. Foundation changes only if a primitive has genuinely domain-independent semantics and at least two appropriate consumers.
+The payload owner belongs at the Runtime hook/domain boundary if Runtime stores it for later use. Foundation admission follows the accepted semantic-ownership criterion (ADR-0024): a primitive with genuinely domain-independent semantics is admitted on semantic ownership with explicit failure signals and an admission record, and multiple consumers are supporting evidence — never a threshold. The former "at least two appropriate consumers" requirement is the superseded multi-consumer threshold and is explicitly not restored.
 
 ### 5.2 MVP-5 — Add cognition generation publication
 
@@ -390,6 +394,7 @@ The release report presents two ledgers:
 - `runtime/cognition-activation-policy.yaml`;
 - typed activation metadata for scars, decisions, obligations, and source references;
 - lifecycle validation and exact source/digest rules;
+- repository-gate rejection of protected-class canonical records that lack activation selector metadata;
 - incident records for the MVP-4 H1 failures;
 - activation acceptance evidence locations.
 
@@ -435,6 +440,7 @@ The unified single-session engineering model remains. Only high-risk falsificati
 #### Add before MVP-5
 
 - a machine-readable capability surface pointing to existing public primitives and their authoritative contracts;
+- the growing-buffer byte-serialization vocabulary (bounded builder, fixed-width endian put/get, length-prefixed field helpers) as a CA-1 prerequisite, admitted under the semantic-ownership criterion with a one-time zero-cost assembly comparison note;
 - missing genuinely generic primitives only when their semantics satisfy Foundation's admission law;
 - tests/contract documentation for ownership, representation, failure, and cost behavior of those primitives.
 
@@ -460,7 +466,8 @@ Repeated use is evidence to inspect ownership, not automatic proof that Foundati
 - task bundle builder and renderer;
 - activation receipt and validator;
 - one-shot native control surface over the production library;
-- activation observability and fault tests.
+- activation observability and fault tests;
+- a mechanical serialization-consolidation batch replacing hand-rolled byte-packing sites and duplicate put/get definitions with the Foundation vocabulary, with divergent length-prefix widths reconciled per format family through an explicit representation decision rather than silent unification; the batch rides the CA-1 vocabulary work and is part of its regression evidence.
 
 #### Add during MVP-5/MVP-6
 
@@ -584,6 +591,13 @@ Rollback activation workflow to the last accepted generation or explicit manual 
 
 Rollback does not roll back a valid canonical record commit. It changes which derived cognition generation is active and records the barrier.
 
+### 8.5 Transition discipline
+
+The interim is heavier than either endpoint: until replacement acceptance, activation receipts, compliance maps, and falsification receipts are added work on top of the unreduced manual path. Two controls bound the interim:
+
+1. **Stall trigger.** The CA program obligation records an explicit transition bound — a declared session or calendar budget for CA-1 to reach Profile A and Profile B pass. Missing the bound forces a program review (descope, re-plan, or re-deliberate the transition explicitly); it never resolves by silent drift. The bound is set at CA-0 and may be amended only by a recorded decision.
+2. **Declared program packs.** During the transition, CA-batch work itself MAY use manually curated, digested cognition packs under the same rules as the MVP-4 incident pack: each pack is recorded, pinned to exact source revisions, expiry-dated to the phase it serves, and treated as evidence toward activation metadata. A program pack is never a competing activation architecture and never a permanent substitute; an expired pack is removed with its obligation closed.
+
 ---
 
 ## 9. Performance Budget and the Former 300-Second Gate
@@ -645,6 +659,21 @@ At minimum:
 - cognitive-effectiveness acceptance operation.
 
 Historical ADRs and memories are not edited to pretend this design always existed. New decisions reference and, where necessary, supersede older operational assumptions explicitly.
+
+### Acceptance transaction
+
+The transaction that accepts this amendment records, in the same commit: the MVP-4 status reclassification — implementation exists, batch not accepted while the real H1 exit gate is unpassed — in `state/current.md` and `state/active-work.yaml`, so that no competing MVP-4 status survives in compact current state; and the canonical landing homes below. Historical session records are not edited.
+
+### Canonical landing homes
+
+| Document | Canonical home |
+|---|---|
+| Cognitive Governance Program | `qiven-context/collaboration/cognitive-governance-program.md` |
+| Task Cognition Activation Architecture | `qiven-runtime/docs/architecture/task-cognition-activation.md` |
+| Cognitive Effectiveness Acceptance Protocol | `qiven-context/collaboration/cognitive-effectiveness-acceptance.md` |
+| Runtime Production MVP Roadmap Amendment | `qiven-runtime/docs/architecture/runtime-mvp-roadmap-amendment.md` |
+
+The root ADR references these homes instead of duplicating their bodies. Every normative rule introduced by these documents carries activation selector metadata from birth — source category, applicable phase, and risk class — so that the program's own corpus is activation-ready on landing and never becomes undifferentiated mandatory prose.
 
 ---
 

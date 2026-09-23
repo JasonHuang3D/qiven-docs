@@ -563,7 +563,8 @@ A program-level review is mandatory when any of the following occurs:
 - a participant completes R2/R3 work without a valid receipt;
 - activation cost causes a sanctioned workflow to be bypassed;
 - the same author assumption appears in design, implementation, and tests;
-- active-context size grows by more than 25% without a measured quality gain.
+- active-context size grows by more than 25% without a measured quality gain;
+- the Task Cognition Activation program misses its declared transition bound — the program obligation records an explicit stall trigger (a session or calendar budget for CA-1 to reach Profile A and Profile B pass), and missing it forces a program review rather than silent drift.
 
 ---
 
