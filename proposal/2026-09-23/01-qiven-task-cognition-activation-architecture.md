@@ -741,7 +741,7 @@ cognition index status
 cognition index rebuild <exact-source-revision>
 ```
 
-Before the resident service integration is accepted, a bounded one-shot native command may exercise the same core library. There SHALL NOT be two activation semantics.
+Before the resident service integration is accepted, a bounded one-shot native command may exercise the same core library. There SHALL NOT be two activation semantics. A successful CLI call or SessionStart refresh only proves activation computation or session setup; neither proves that the resulting bundle reached a model invocation before design.
 
 ### 13.3 Design evidence
 
@@ -775,6 +775,8 @@ For R2/R3 publication, Devkit verifies:
 - design compliance map covers every activated protected rule;
 - changed paths stay inside declared task scope or trigger reactivation;
 - for a claimed before-design/implementation/review activation, the observed phase-entry and harness delivery events show that this exact bundle reached the named consumer before that phase began. If that event cannot be observed, publication may prove receipt conformance but MUST NOT claim before-phase delivery or universal task interception.
+
+CA-2 qualifies at least one real, controlled R2/R3 task-entry path before MVP-5 dogfood: the task is admitted, the exact bundle is delivered as model-visible input, and the first design output is captured under the same invocation chain. Test withheld, altered, and late delivery. The present MVP-4 `SessionStart`/`PreToolUse` hook observes session and tool events, not model-input delivery or design start by itself; use it only for the events it actually proves. If no supported harness ingress or approved orchestrator can provide and capture this boundary, CA-2 remains open. A publication-time receipt cannot make an unobserved earlier design compliant.
 
 The gate does not attempt to judge arbitrary natural-language correctness. It verifies declared, typed relationships and stops when evidence is missing.
 

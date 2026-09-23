@@ -12,9 +12,10 @@ with the canonical human-handoff contract. Pass 4 made that contract change
 explicit and removed the remaining R3 classification ambiguity. Pass 5
 corrected deterministic-output, receipt timing, source-closure, budget-error,
 and observable-boundary defects exposed by checking the proposal against the
-current Context and Runtime contracts. The resulting PR
-branch is the authority for proposed wording; no review self-accepts the
-documents.
+current Context and Runtime contracts. Pass 6 then checked GLM-5.3's
+verdict against the actual MVP-4 hook surface and tightened the production
+ingress and utility experiment. The resulting PR branch is the authority
+for proposed wording; no review self-accepts the documents.
 
 ## Amendment-to-landing mapping
 
@@ -48,6 +49,8 @@ documents.
 | R11 | Added an exact external repository source lock and a separate ActivationGeneration sidecar, so Devkit/Foundation/Runtime source changes cannot reuse a stale Context-only index key or mutate an immutable execution bundle |
 | R12 | Aligned protected budget overflow with the architecture's `BudgetInsufficient` machine result; re-deliberation is a subsequent decision |
 | R13 | Scoped before-phase and no-bypass claims to observed harness entrypoints and controlled publication gates; after-the-fact receipt issuance cannot prove earlier cognition delivery |
+| R14 | Made CA-2's before-design entry gate non-vacuous: a real supported ingress must capture model-visible delivery and first design output; MVP-4 SessionStart/PreToolUse alone sees session/tool events, not that delivery; uninstrumented work cannot count as dogfood |
+| R15 | Replaced the full-corpus-size proxy with measured input tokens actually delivered in both Profile C conditions; separated quality-uplift and statistically bounded efficiency/non-inferiority paths instead of mislabeling a possible score loss as strict Pareto dominance |
 
 ## Evidence boundary
 
@@ -78,3 +81,7 @@ Pass 4 accepts the gap but corrects two details:
 ## Pass-5 contract check (2026-09-23 UTC)
 
 The current Production MVP binds an execution `RuntimeGeneration` to its existing immutable Context bundle, profile, and Runtime build; it does not bind external Devkit or Foundation revisions. The amended TCA therefore publishes a separate activation generation bound to an exact multi-repository source lock. Acceptance distinguishes deterministic selection bytes from issuance metadata and checks the activation-to-design/delivery timeline explicitly. These are proposed corrections, not claims that the corresponding implementation or an ADR-0036 amendment has landed.
+
+## Pass-6 self-review (2026-09-23 UTC)
+
+GLM-5.3 accepted R9-R13 and suggested the MVP-4 hook as the observation point for R13. The current hook process (`qiven-runtime/apps/zcode_hook_main.cpp`, main at `787b664c36c980108025b661a3c692f037aa58ff`) handles SessionStart/PreToolUse/PostToolUse and returns action verdicts; it has no model-input delivery acknowledgement or design-start event. The qualified CA-2 ingress must prove those separately, and an empty covered set cannot pass the exit gate. The same review corrected Profile C's token comparison and its "strict Pareto" label: a three-point score loss can satisfy a bounded efficiency tradeoff, but cannot be called Pareto dominance. External Devkit/Foundation source changes alone need not rotate the execution RuntimeGeneration; changing the Context bundle still follows the original Runtime generation rule.

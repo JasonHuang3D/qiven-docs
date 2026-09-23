@@ -116,8 +116,10 @@ Define what the LLM consumer needs at each engineering boundary and establish a 
 - define `qiven-engineering-task-v1` without encoding one model's prompt habits;
 - define protected cognition, candidate cognition, unresolved applicability, and semantic-owner discovery;
 - inventory canonical source categories and ownership by repository;
+- scope and cost the exact multi-repository source lock, sidecar publication, and recovery work inside CA-0's bounded CA-1 batch estimate;
+- inspect the real ZCode harness and any approved orchestrator for a model-visible pre-design ingress with task/invocation capture; distinguish SessionStart/tool interception from input delivery and record a feasibility proof or blocker before promising a before-design gate;
 - map the MVP-4 failures to incident scars and sealed acceptance fixtures;
-- measure the actual current cold-boot corpus, task-specific additions, time-to-first-design, and first-pass quality;
+- measure the actual current cold-boot corpus and model inputs delivered during ordinary task runs, task-specific additions, time-to-first-design, and first-pass quality;
 - seal the initial gold fixture corpus and scoring rubric;
 - record the old Python compiler/retrieval system as sealed historical input, not a component to restore;
 - propose the root ADR and non-terminal obligation that authorize the TCA program.
@@ -137,6 +139,7 @@ Define what the LLM consumer needs at each engineering boundary and establish a 
 - six or more sealed fixtures cover the known critical boundary classes;
 - current cold-boot cost and outcome baseline are reproducible;
 - every initial protected rule has one canonical owner and exact source reference;
+- a concrete controlled task-ingress design and real-harness feasibility evidence exist for the CA-2 before-design delivery trial, or CA-0 records a blocker and re-deliberates sequencing rather than silently substituting publication-time receipts;
 - no design assumes that more prompt volume equals better attention;
 - the program has explicit non-goals and a rollback boundary.
 
@@ -215,18 +218,19 @@ Make activation an ordinary engineering boundary rather than an optional command
 
 - add `qiven cognition prepare`, `show`, `explain`, and `verify-receipt` workflow surfaces;
 - observe repository, task phase, changed paths, language, platform, and boundary kinds where mechanically possible;
-- require an activation receipt and observed delivery event before R2/R3 design/review entry where the harness can interlock that boundary, and verify bound design/falsification evidence at implementation publication;
+- implement and qualify at least one controlled MVP-5/MVP-6 R2/R3 task ingress that injects the exact activation bundle into model-visible input before the first design output, captures task/receipt/bundle digest, invocation identity, ordering, and the output, and rejects missing, altered, or late delivery; verify bound design/falsification evidence at implementation publication;
 - add the cognition compliance map to engineering design evidence;
 - define `qiven-cognitive-falsification-receipt-v1`;
 - add fresh-context adversarial review using the isolation classes defined by the acceptance protocol: routine R2 may use disclosed same-family isolated context, while every R3 and milestone/release trial uses independently orchestrated isolation; typed human handoffs remain separate authority or real-environment evidence under the explicitly amended handoff contract;
 - ensure material design or task changes trigger reactivation;
 - make missing/stale/unresolved receipts fail visibly without granting new execution authority;
-- enumerate the exact harness entrypoints and repository publication gates under control; record unobserved phase starts as coverage gaps, never retroactive before-phase successes;
+- enumerate the exact harness entrypoints and repository publication gates under control; record unobserved phase starts as coverage gaps, never retroactive before-phase successes. MVP-4 SessionStart/PreToolUse may supply session/action evidence but does not by itself establish model-input delivery or design entry;
 - keep the current manual boot path available in shadow mode.
 
 #### Exit gate
 
-- an R2/R3 candidate cannot pass a declared Devkit-controlled publication gate without valid activation, delivery (for before-phase claims), design-evidence, and falsification bindings; bypass claims remain scoped to enumerated enforced paths;
+- a real supported task-ingress trial proves model-visible bundle delivery precedes the first design output, and missing, tampered, or late delivery prevents a compliant design; absent such a path, CA-2 fails rather than passing vacuously;
+- an R2/R3 candidate cannot pass a declared Devkit-controlled publication gate without valid activation, delivery, design-evidence, and falsification bindings; bypass claims remain scoped to enumerated enforced paths;
 - bypass, replay, stale generation, stale design, and policy-change cases are tested;
 - independent review finds planted ownership, payload, concurrency, and recovery defects in the acceptance corpus;
 - same-session tests alone are rejected as the sole evidence for the declared high-risk classes;
@@ -579,7 +583,7 @@ After both MVP-7 gates pass, proceed in this order:
 4. **Incremental index publication** — introduce only if measured corpus growth makes full native rebuild exceed its budget; preserve byte-equivalent results.
 5. **Optional semantic reranking** — apply only to P3/P4 candidates and prove it cannot affect P0/P1/P2 protection.
 6. **K5 transport compression** — compare decompressed semantics and fresh-consumer outcomes to the accepted uncompressed reference.
-7. **Task-transition integration** — trigger reactivation from observed workflow events with false-transition metrics and explicit user visibility.
+7. **Generalized task-transition detection** — expand beyond the qualified pre-MVP-5 task-ingress path to previously uninstrumented workflows, with false-transition metrics and explicit user visibility.
 8. **Additional consumers/repositories** — qualify each with its own fixtures, capability surface, and consumer-profile evidence.
 
 No later optimization inherits the Cognitive Utility Claim automatically.
@@ -597,7 +601,7 @@ No later optimization inherits the Cognitive Utility Claim automatically.
 
 ### 8.2 Stage 2 — Governed R2/R3
 
-- Require receipts and independent falsification for R2/R3 work.
+- Require receipts, qualified before-design delivery, and independent falsification for R2/R3 work admitted through the declared covered ingress. Unobserved work is a coverage miss and does not satisfy CA-3/CA-5 dogfood.
 - Keep R0/R1 warnings non-blocking only where policy explicitly allows.
 - Keep manual fallback available when Runtime returns `Blocked`, `ReDeliberate`, or `BudgetInsufficient`.
 - A fallback is recorded as an exception and cannot fabricate a ready receipt.
@@ -664,7 +668,7 @@ It accepts:
 - native deterministic activation;
 - protected applicability;
 - canonical/derived separation;
-- external task-boundary triggering;
+- external task-boundary triggering with at least one qualified, non-vacuous before-design model-input delivery path for the MVP-5/MVP-6 dogfood claim;
 - independent falsification for R2/R3;
 - the explicit ADR-0036 / Human Handoff Boundary amendment required for owner-free fresh review: mechanically verified launch and sealed transport inside an approved orchestrator cease to be inherently H1; H1 remains mandatory for owner-only credentials/devices, external isolation crossings, owner-named trust anchors, and owner-designated adjudication; existing owner-named K4/K5 gates and all H2-H4 claims remain unchanged;
 - CA-0 through CA-5 sequencing;

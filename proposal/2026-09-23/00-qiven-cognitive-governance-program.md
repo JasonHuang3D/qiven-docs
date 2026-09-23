@@ -170,7 +170,7 @@ At minimum, activation is reconsidered at:
 - discovery of an unexpected failure class;
 - preparation for an owner-live or isolation-boundary acceptance step.
 
-CA-2 MUST declare the exact harness, command, and publication boundaries it can observe and interlock. A design-start event cannot be inferred from a later commit. For an unobserved entry path the program records a coverage gap and withholds any before-design or no-bypass claim; a receipt issued after the fact cannot repair that gap. A harness delivery record, bound to the task, bundle digest, consumer invocation, and delivery time, is needed to claim that the bundle reached the consumer before the phase began. Even that record does not prove comprehension.
+CA-2 MUST declare the exact harness, command, and publication boundaries it can observe and interlock. A design-start event cannot be inferred from a later commit. For an unobserved entry path the program records a coverage gap and withholds any before-design or no-bypass claim; a receipt issued after the fact cannot repair that gap. A harness delivery record, bound to the task, bundle digest, consumer invocation, and delivery time, is needed to claim that the bundle reached the consumer before the phase began. Even that record does not prove comprehension. CA-2 cannot pass with an empty coverage set: at least one MVP-5/MVP-6 R2/R3 task-entry path must demonstrate model-visible bundle delivery before the first design output. Uninstrumented work in the declared MVP-5/MVP-6 dogfood scope is a coverage failure, not a reason to shrink the denominator after observing results.
 
 ### CG-3 — Critical applicability is not a ranking problem
 

@@ -369,7 +369,7 @@ Each accepted fixture is executed under two conditions:
 
 Both conditions receive the same task objective, permitted tools, implementation boundary, model/profile class, time limit, and required output schema. They do not share a session.
 
-The control is the real current process, not an intentionally weakened prompt. The activated condition receives no private hints outside the accepted bundle.
+The control is the real current process, not an intentionally weakened prompt. The activated condition receives no private hints outside the accepted bundle. For each run, count cumulative model input tokens through the sealed engineering brief, including initial context, the activation bundle or manual boot, on-demand source reads, and tool-returned text, using the same pinned tokenizer. Report identical system/harness overhead separately and exclude it equally from both comparisons. Compare actual delivered inputs, not the size of the entire manual cold-boot corpus.
 
 Descriptor construction is condition-blind and fixed before assignment. One pre-sealed normalizer derives a neutral task envelope from facts available in the current workflow: task objective, declared repository and revision, changed paths, path-prefix subsystem mapping, file-extension language mapping, declared phase, and declared risk class. Both conditions receive those same underlying facts. Runtime derives the activated condition's internal `TaskDescriptor` only from that envelope and mechanically observed facts. Judgment-bearing fields (`boundary_kinds`, `external_contracts`, `explicit_ids`, `signals`) remain empty unless the fixed normalizer can derive them without curator interpretation. Protected selectors depending on curator judgment are tested in Profile B but earn no Profile C utility credit. Supplying an expert-enriched descriptor to either condition invalidates the paired run; there is no alternate descriptor method selected after sealing.
 
@@ -383,7 +383,7 @@ Initial MVP-7 acceptance SHALL use:
 - randomized condition and fixture order;
 - no reuse of a consumer session between paired conditions.
 
-If output variance is large enough that one run changes the release conclusion, the acceptance owner SHALL add runs rather than choose the favorable sample.
+CA-0 seals a maximum run count, balanced batch increments, and an interval method valid for the planned analysis looks. If the lower bound remains inconclusive at the minimum run count, add the next prespecified batch across both conditions and all fixtures; never stop on a favorable individual run or discard an unfavorable one. If the maximum is reached without passing, the candidate fails.
 
 ### 7.3 Required consumer output
 
@@ -428,12 +428,12 @@ The activated cohort passes only if all of the following hold:
 3. the activated cohort median is at least 90/100;
 4. no rubric dimension falls below its critical floor;
 5. no fabricated authority, accepted decision, source, capability, or external contract appears;
-6. median active input volume is at least 60% lower than the measured manual cold-boot corpus;
+6. median actual input tokens delivered to activated consumers are at most 40% of the median delivered to controls, under the same accounting rule in Section 7.1;
 7. median time to a reviewable engineering brief is no worse than control;
-8. the activated condition lies on a strict Pareto improvement over control: either its mean score is at least 15 points higher, or its mean score is non-inferior within 3 points while using at least 60% fewer input tokens;
+8. one predeclared outcome path passes: (a) the equal-fixture-weighted mean score gain is at least 15 points and its one-sided 95% lower confidence bound exceeds zero; or (b) the one-sided 95% lower confidence bound for that score difference is at least -3 points while criterion 6 proves the input reduction;
 9. at least two distinct failure classes show correct pre-implementation stopping behavior where the control cohort proceeded on an unsupported assumption.
 
-Criterion 8 handles a legitimate ceiling case without weakening the required absolute score and zero-critical-miss rules.
+Before assignments, CA-0 seals the fixture-level score-difference estimator, independent-run clustering, one-sided interval method, tokenizer, and stopping rule for additional runs. Each fixture contributes equal weight, and every run remains in the analysis; an inconclusive interval fails pending more sealed runs. Path (b) is an efficiency/non-inferiority claim within the stated margin, not strict Pareto dominance or proof of a higher score. Criterion 8 handles a legitimate ceiling case without weakening the required absolute score and zero-critical-miss rules.
 
 ### 7.6 Scoring reliability
 
@@ -522,7 +522,7 @@ The reviewer is explicitly asked to disprove, not summarize:
 MVP-5 and MVP-6 SHALL be the first sustained consumers of TCA. Every material task records:
 
 - task/risk classification;
-- activation receipt;
+- activation receipt and observed model-input delivery event before the first design output, bound to the consumer invocation;
 - bundle size and activation latency;
 - protected and unresolved source counts;
 - semantic-owner decision;
@@ -544,7 +544,7 @@ A materially similar recurrence of any accepted critical fixture during the dogf
 
 Before MVP-7 Cognitive Utility acceptance:
 
-- every R2/R3 MVP-5 and MVP-6 task has a valid activation receipt;
+- every R2/R3 MVP-5 and MVP-6 task within the declared dogfood scope has a valid activation receipt and independently captured before-design model-input delivery under the qualified CA-2 entry path; an uninstrumented task is a coverage miss that fails Profile E and remains in the denominator;
 - every required independent-falsification receipt is present and bound to the published candidate;
 - no accepted critical scar recurs undetected before independent review;
 - no mature known hazard reaches owner-live H1 as its first detection surface;
@@ -553,7 +553,7 @@ Before MVP-7 Cognitive Utility acceptance:
 - median warm activation latency and write-path budgets meet Section 10;
 - all newly discovered material incidents are represented in the gold corpus or explicitly mapped to an existing class.
 
-H1 may still find genuinely external or previously unknown behavior. Such a finding is not automatically an activation failure, but its classification and evidence MUST be recorded.
+Profile C's isolated trial transport does not qualify the production CA-2 entry path by itself. The dogfood entry path must carry its own real-harness capture. H1 may still find genuinely external or previously unknown behavior. Such a finding is not automatically an activation failure, but its classification and evidence MUST be recorded.
 
 ---
 
