@@ -176,8 +176,8 @@ Build the smallest native, local, explainable path that maps a pinned RuntimeGen
 - reuse accepted lower-layer byte ownership and encoding capabilities; CA-1 MUST NOT create another Runtime-local generic byte codec;
 - implement task normalization and observed-versus-claimed provenance;
 - validate `runtime/cognition-core.yaml` and `runtime/cognition-activation-policy.yaml`;
-- ingest exact pinned Git/tree sources already admitted by the Runtime cognition publisher;
-- build an immutable, rebuildable activation index outside canonical truth;
+- pin the existing immutable Context bundle/RuntimeGeneration and build a complete validated lock of every external Devkit, Foundation, Runtime, or other source that selection will use;
+- build an immutable, rebuildable activation-index sidecar with its own ActivationGeneration outside canonical truth; do not append it to the already-published qiven-cognition-bundle-v1;
 - evaluate P0/P1 protected rules without ranking;
 - resolve repository semantic-owner and capability entries;
 - rank only optional P3/P4 candidates using deterministic local signals;
@@ -200,7 +200,7 @@ Build the smallest native, local, explainable path that maps a pinned RuntimeGen
 - Profile A and Profile B of the acceptance protocol pass;
 - protected applicability recall is 100% on sealed fixtures;
 - byte-identical inputs produce byte-identical canonical outputs;
-- source, policy, generation, task, design, and live-evidence changes invalidate receipts correctly;
+- source lock, policy, activation generation, task, and live-evidence changes invalidate activation receipts correctly; a changed design or candidate digest invalidates its separate design-evidence/falsification binding, with reactivation when selector-bearing task facts change;
 - cold index rebuild is below 5 seconds and warm task activation p95 is below 250 milliseconds on the reference corpus;
 - canonical Context mutation does not wait for task bundle generation;
 - loss/corruption of the activation index is recovered from pinned canonical sources.
@@ -215,17 +215,18 @@ Make activation an ordinary engineering boundary rather than an optional command
 
 - add `qiven cognition prepare`, `show`, `explain`, and `verify-receipt` workflow surfaces;
 - observe repository, task phase, changed paths, language, platform, and boundary kinds where mechanically possible;
-- require a valid receipt before R2/R3 design, implementation publication, and review;
+- require an activation receipt and observed delivery event before R2/R3 design/review entry where the harness can interlock that boundary, and verify bound design/falsification evidence at implementation publication;
 - add the cognition compliance map to engineering design evidence;
 - define `qiven-cognitive-falsification-receipt-v1`;
 - add fresh-context adversarial review using the isolation classes defined by the acceptance protocol: routine R2 may use disclosed same-family isolated context, while every R3 and milestone/release trial uses independently orchestrated isolation; typed human handoffs remain separate authority or real-environment evidence under the explicitly amended handoff contract;
 - ensure material design or task changes trigger reactivation;
 - make missing/stale/unresolved receipts fail visibly without granting new execution authority;
+- enumerate the exact harness entrypoints and repository publication gates under control; record unobserved phase starts as coverage gaps, never retroactive before-phase successes;
 - keep the current manual boot path available in shadow mode.
 
 #### Exit gate
 
-- an R2/R3 candidate cannot pass the Devkit publication gate without valid activation and falsification receipts;
+- an R2/R3 candidate cannot pass a declared Devkit-controlled publication gate without valid activation, delivery (for before-phase claims), design-evidence, and falsification bindings; bypass claims remain scoped to enumerated enforced paths;
 - bypass, replay, stale generation, stale design, and policy-change cases are tested;
 - independent review finds planted ownership, payload, concurrency, and recovery defects in the acceptance corpus;
 - same-session tests alone are rejected as the sole evidence for the declared high-risk classes;
@@ -241,8 +242,8 @@ Use the typed-record and Git candidate transaction batch as the first full produ
 #### Work
 
 - activate record-domain, representation, Git-CAS, filesystem-transaction, ownership, validator, and external-tool cognition before design and implementation tasks;
-- bind task receipts to design digests and candidate revisions;
-- publish a new activation index only after an MVP-5 canonical commit succeeds and a complete new cognition generation validates;
+- bind pre-design task receipts to later design digests and candidate revisions through separate design-evidence/falsification records;
+- publish a new activation-index sidecar only after an MVP-5 canonical commit succeeds and a complete new source lock validates; an external source revision change likewise creates a new ActivationGeneration without mutating the original execution RuntimeGeneration;
 - keep activation-index publication outside the typed record's atomic canonical Git transaction;
 - surface the correct existing capability owner before creating new renderers, path types, hashes, results, or byte abstractions;
 - independently falsify request idempotency, temporary-index isolation, ref CAS, working-tree projection, and validator assumptions;
@@ -257,17 +258,18 @@ typed record request
     -> validate candidate tree
     -> commit + local-ref CAS
     -> publish canonical success
-    -> build/validate new cognition generation
+    -> pin canonical bundle + exact external source lock
+    -> build/validate separate ActivationGeneration sidecar
     -> atomically activate derived index
 ```
 
-If the final two steps fail, the canonical commit remains valid and the prior cognition generation remains active. The new generation reports `NotActivated`; it is never partially visible.
+If the derivative steps fail, the canonical commit remains valid and the prior ActivationGeneration remains active only for tasks whose exact locked inputs are still compatible. New tasks requiring the unpublished commit or changed external source fail at a readiness barrier. The candidate reports `NotActivated`; it is never partially visible.
 
 #### Additional MVP-5 exit evidence
 
 In addition to every original MVP-5 exit criterion:
 
-- every R2/R3 work unit has valid bound receipts;
+- every R2/R3 work unit has a pre-design receipt, observed delivery evidence where that claim is made, and valid bound design/falsification evidence;
 - all four initial record families produce the expected activation-generation transition;
 - a failed validator creates neither a canonical commit nor a new active activation index;
 - a successful canonical commit followed by index-build failure preserves the last good active generation and reports the lag explicitly;
@@ -283,7 +285,7 @@ Extend end-to-end recovery semantics to the derived cognition generation, receip
 
 #### Work
 
-- journal only activation control facts: generation identity, build outcome, active pointer transition, receipt issuance/staleness, and barriers;
+- journal only activation control facts: execution RuntimeGeneration and separate ActivationGeneration identities, source-lock digest, build outcome, active pointer transition, receipt issuance/staleness, and barriers;
 - keep index bodies and task bundles as external rebuildable derivatives;
 - reconcile a crash before index publication, after publication but before pointer activation, and after activation but before acknowledgement;
 - invalidate old unconsumed task receipts after relevant generation/policy changes;
@@ -298,7 +300,7 @@ Extend end-to-end recovery semantics to the derived cognition generation, receip
 
 In addition to every original MVP-6 exit criterion:
 
-- two RuntimeHost instances cannot publish competing active cognition generations;
+- two RuntimeHost instances cannot publish competing active ActivationGenerations;
 - an interrupted generation build never exposes a partial index or bundle;
 - recovery classifies generation publication as succeeded, not performed, stale, or conflicting without blind replay;
 - stale receipts fail closed for their governed engineering gate;
@@ -393,7 +395,7 @@ Keep the original ExecutionAuthority, lease, fence, dispatch, outcome, Git-ref r
 
 - derived cognition publication commands/state;
 - active-generation transition reconciliation;
-- receipt staleness and cache recovery;
+- receipt staleness, external source-lock drift, and cache recovery;
 - cognition-readiness barriers;
 - fault injection for each activation publication window.
 
@@ -490,12 +492,12 @@ Repeated use is evidence to inspect ownership, not automatic proof that Foundati
 
 - task descriptor normalization;
 - activation policy ingestion and validation;
-- immutable activation index and publisher;
+- exact external source lock and immutable activation-index sidecar with a distinct ActivationGeneration;
 - protected selector and deterministic candidate ranker;
 - semantic-owner resolver over capability manifests;
 - task bundle builder and renderer;
 - activation receipt and validator;
-- one-shot native control surface over the production library;
+- one-shot native control surface over the production library, with observed phase-entry/delivery capture for any before-phase claim;
 - activation observability and fault tests;
 - a separate pre-MVP-5 representation-remediation batch that replaces duplicated generic byte-packing mechanics with accepted Foundation capabilities while leaving framing and prefix-width semantics with each Runtime format owner. Divergent u32/u64 prefixes require explicit per-format representation decisions and migration tests; they are never silently unified. This batch is tracked independently from CA-1 and is not evidence that activation works.
 
@@ -597,7 +599,7 @@ No later optimization inherits the Cognitive Utility Claim automatically.
 
 - Require receipts and independent falsification for R2/R3 work.
 - Keep R0/R1 warnings non-blocking only where policy explicitly allows.
-- Keep manual fallback available when Runtime returns `Blocked` or `ReDeliberate`.
+- Keep manual fallback available when Runtime returns `Blocked`, `ReDeliberate`, or `BudgetInsufficient`.
 - A fallback is recorded as an exception and cannot fabricate a ready receipt.
 
 ### 8.3 Stage 3 — Replacement

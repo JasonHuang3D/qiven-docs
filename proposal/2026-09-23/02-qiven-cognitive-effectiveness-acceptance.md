@@ -265,13 +265,13 @@ The incident author does not silently tune selectors against only the incident w
 
 The native automated suite SHALL prove:
 
-1. identical normalized inputs produce byte-identical canonical bundles, manifests, and selection explanations;
-2. every output binds source repository revisions, generation ID, policy digest, schema versions, task digest, and bundle digest;
+1. identical normalized source closures, tasks, policies, budgets, and renderer builds produce byte-identical canonical selection bundles, manifests, and selection explanations; receipt issuance nonces and timestamps are checked for correct binding, not byte equality;
+2. every output binds the execution RuntimeGeneration, the separate ActivationGeneration, the full external repository source lock, policy digest, schema versions, task digest, and bundle digest;
 3. a changed canonical body without a changed path changes the correct digest and invalidates affected outputs;
 4. superseded and legacy sources do not appear as current rules;
 5. epistemic types cannot be promoted by imperative language in a lower-authority record;
 6. invalid selectors, source references, lifecycle states, and capability entries fail publication;
-7. receipts cannot be replayed across a changed task, risk, design digest, policy, generation, consumer profile, or expired live evidence;
+7. activation receipts cannot be replayed across a changed task, risk, source lock, policy, activation generation, renderer, consumer profile, or expired live evidence; a separate design-evidence/falsification binding rejects a changed design or candidate digest;
 8. partial index and bundle writes never become visible;
 9. index loss is recoverable from pinned canonical sources;
 10. activation does not mutate canonical repositories;
@@ -280,7 +280,7 @@ The native automated suite SHALL prove:
 
 ### 5.2 Determinism criterion
 
-For each fixture, execute activation at least 100 times across clean process starts. All canonical outputs and protected-source decisions MUST be identical. Timing and non-canonical diagnostic fields may differ only if excluded explicitly from the hashed manifest.
+For each fixture, execute activation at least 100 times across clean process starts. All canonical selection outputs and protected-source decisions MUST be byte-identical. `bundle_id` is deterministic, and no clock, random value, or volatile path participates in the canonical hashed payload. Receipts MAY have distinct issuance IDs and times while binding the same canonical bundle; the audit envelope is verified separately.
 
 ### 5.3 Fault matrix
 
@@ -299,7 +299,7 @@ At minimum, inject:
 - stale live-evidence receipt;
 - receipt journal unavailability.
 
-Every fault has a declared state: `Blocked`, `ReDeliberate`, `Stale`, or safe rebuild. Silent degradation to a smaller apparently ready bundle is forbidden.
+Every fault has a declared state: `Blocked`, `ReDeliberate`, `BudgetInsufficient`, `Stale`, or safe rebuild. Silent degradation to a smaller apparently ready bundle is forbidden.
 
 ---
 
@@ -340,7 +340,7 @@ A single protected miss fails the profile even when aggregate recall remains hig
 
 ### 6.3 Budget-pressure test
 
-For every fixture, rerun with budgets at 100%, 75%, and 50% of the default candidate allowance. Protected cognition MUST remain present. Optional candidates are removed in deterministic priority order. If protected material alone exceeds the hard budget, activation MUST return `ReDeliberate`; it MUST NOT truncate a protected rule invisibly.
+For every fixture, rerun with budgets at 100%, 75%, and 50% of the default candidate allowance. Protected cognition MUST remain present. Optional candidates are removed in deterministic priority order. If protected material alone exceeds the hard budget, activation MUST return `BudgetInsufficient`, as specified by the architecture; it MUST NOT truncate a protected rule invisibly. A subsequent human or policy re-deliberation may change the budget or scope but is not the machine failure code.
 
 ### 6.4 Mutation tests
 
@@ -479,21 +479,23 @@ An author-generated test that encodes the same assumed payload, lifetime, or sta
 
 Fresh-context review has two disclosed independence classes. Routine R2 cognitive falsification MAY use a harness-created fresh agent session that receives only the sealed review package and no author reasoning trace; it is recorded as `fresh-cognitive-same-family-isolated-context`. Every R3 review, Profile C trial, and CA-5 review requires an orchestration boundary that independently creates the consumer, withholds the answer key and author trace, captures the output, and preserves the assignment record; it is recorded as `fresh-cognitive-orchestrated-isolation`. The owner accepts the resulting governed evidence but is not the transport layer, prompt relay, or routine debugger. A subagent sharing the author's conversation context qualifies under neither class.
 
+For a before-phase cognition claim, retain a separate observed delivery event binding the consumer invocation, receipt, bundle digest, and delivery time to an observed phase entry. A receipt issued after the design cannot be counted as evidence that cognition was active when the design began; when the harness cannot observe the entry/delivery boundary, record that coverage limit rather than treating publication-time validation as proof of earlier delivery.
+
 Governance note: adopting this transport model explicitly amends ADR-0036 and `qiven-context/collaboration/human-handoff-boundary.md`; it is not merely a reinterpretation of historical practice. The current contract expressly classifies owner launch and relay of fresh/isolated sessions as H1 and makes fresh-consumer acceptance roles H1-mandatory. The accepting root ADR MUST narrow that classification so mechanically verified session creation, sealed input transport, and sealed output capture inside an approved orchestration boundary are not inherently H1. H1 remains mandatory for owner credentials or devices, external isolation boundaries the orchestrator cannot cross, owner-named trust anchors, and owner-designated adjudication. Existing K4/K5 gates that explicitly name the owner remain unchanged unless separately amended. H2-H4 retain their existing claims, and governance mutation still requires H2 plus the root principal. Until that contract amendment lands, its current H1 classification remains authoritative.
 
 ### 8.3 Receipt requirements
 
 The falsification receipt SHALL bind:
 
-- task ID and activation receipt ID;
-- design and candidate revision digests;
+- task ID and activation receipt ID, including both generation IDs and the external source lock;
+- the separate design-evidence binding, design digest, and candidate revision digest;
 - risk class and challenged assumptions;
 - independence class and consumer/scorer profile;
 - evidence commands or artifact references;
 - findings and their severity;
 - disposition of every finding;
 - residual unknowns;
-- reactivation requirement after material design changes.
+- reactivation requirement when a material design change alters activation selectors; renewed falsification when the design or candidate digest changes.
 
 Publication fails if a required finding is unresolved or the bound candidate changed materially.
 
@@ -588,7 +590,7 @@ Acceptance records:
 - protected/core/candidate proportions;
 - cache hit rate;
 - activation p50/p95/p99;
-- number and cause of `Blocked` and `ReDeliberate` results.
+- number and cause of `Blocked`, `ReDeliberate`, and `BudgetInsufficient` results.
 
 No average may hide an unbounded worst-case path on a supported corpus.
 

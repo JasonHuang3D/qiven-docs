@@ -170,6 +170,8 @@ At minimum, activation is reconsidered at:
 - discovery of an unexpected failure class;
 - preparation for an owner-live or isolation-boundary acceptance step.
 
+CA-2 MUST declare the exact harness, command, and publication boundaries it can observe and interlock. A design-start event cannot be inferred from a later commit. For an unobserved entry path the program records a coverage gap and withholds any before-design or no-bypass claim; a receipt issued after the fact cannot repair that gap. A harness delivery record, bound to the task, bundle digest, consumer invocation, and delivery time, is needed to claim that the bundle reached the consumer before the phase began. Even that record does not prove comprehension.
+
 ### CG-3 — Critical applicability is not a ranking problem
 
 Known critical hazards and binding constraints use deterministic applicability rules. They MUST NOT depend exclusively on embedding similarity, LLM classification, or Top-K ranking.
@@ -430,7 +432,7 @@ The map is not a prose restatement. It demonstrates that activated cognition cha
 
 ### 8.3 Implementation gate
 
-The design digest and activation receipt are bound. A material design change invalidates the receipt and requires reactivation or an explicit determination that the activated set remains sufficient.
+The design-evidence record binds the design digest to an activation receipt issued before the design. A design edit invalidates the design and falsification bindings; it requires reactivation only when selector-bearing scope, boundary, risk, source revision, or required evidence changes.
 
 ### 8.4 Review gate
 

@@ -9,7 +9,10 @@ blocking, B1-B4 material, C1-C3 administrative). Pass 2 accepted A1 and B2,
 accepted the intent of the other amendments, and corrected six boundary
 errors. Pass 3 accepted those corrections and correctly identified a conflict
 with the canonical human-handoff contract. Pass 4 made that contract change
-explicit and removed the remaining R3 classification ambiguity. The final
+explicit and removed the remaining R3 classification ambiguity. Pass 5
+corrected deterministic-output, receipt timing, source-closure, budget-error,
+and observable-boundary defects exposed by checking the proposal against the
+current Context and Runtime contracts. The resulting PR
 branch is the authority for proposed wording; no review self-accepts the
 documents.
 
@@ -40,6 +43,11 @@ documents.
 | R6 | Removed impossible cross-repository atomicity and bound repository-local commits by exact revision instead |
 | R7 | Corrected the claim that owner-free orchestration merely reinterprets the handoff contract: ADR-0036 explicitly classifies fresh-session launch/relay as H1, so the root ADR must narrow that text honestly |
 | R8 | Removed the undefined `R3 governance-adjacent` split: every R3 cognitive review now uses orchestrated isolation; governance mutation separately retains H2 plus root-principal acceptance |
+| R9 | Moved issuance time and random receipt IDs outside byte-identical canonical bundle output; Profile A compares deterministic selection bytes and independently verifies receipt bindings |
+| R10 | Separated pre-design activation receipt, observed bundle delivery, later design-evidence binding, and falsification receipt; only selector-bearing changes require reactivation, while every changed design/candidate digest requires renewed binding/review |
+| R11 | Added an exact external repository source lock and a separate ActivationGeneration sidecar, so Devkit/Foundation/Runtime source changes cannot reuse a stale Context-only index key or mutate an immutable execution bundle |
+| R12 | Aligned protected budget overflow with the architecture's `BudgetInsufficient` machine result; re-deliberation is a subsequent decision |
+| R13 | Scoped before-phase and no-bypass claims to observed harness entrypoints and controlled publication gates; after-the-fact receipt issuance cannot prove earlier cognition delivery |
 
 ## Evidence boundary
 
@@ -66,3 +74,7 @@ Pass 4 accepts the gap but corrects two details:
   receives orchestrated isolation. A governance mutation additionally
   retains H2 plus root-principal acceptance. Existing owner-named K4/K5
   trust-anchor gates and H2-H4 claims remain unchanged.
+
+## Pass-5 contract check (2026-09-23 UTC)
+
+The current Production MVP binds an execution `RuntimeGeneration` to its existing immutable Context bundle, profile, and Runtime build; it does not bind external Devkit or Foundation revisions. The amended TCA therefore publishes a separate activation generation bound to an exact multi-repository source lock. Acceptance distinguishes deterministic selection bytes from issuance metadata and checks the activation-to-design/delivery timeline explicitly. These are proposed corrections, not claims that the corresponding implementation or an ADR-0036 amendment has landed.
