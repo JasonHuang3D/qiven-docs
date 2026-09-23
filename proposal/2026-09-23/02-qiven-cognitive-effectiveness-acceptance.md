@@ -235,6 +235,19 @@ Critical findings:
 - publication uses private construction plus atomic visibility;
 - tests force collision/retry behavior.
 
+#### F-08 — Fail-closed mediator availability
+
+The task enables or operates a control component whose fail-closed behavior can block ordinary work — for example a hook mediator whose governed verdicts require a reachable host process.
+
+Critical findings:
+
+- the mediator's own lifecycle is explicit: who starts it, who supervises it, and what happens when it is absent, slow, stale, or version-skewed;
+- enabling the fail-closed gate is preceded by a pre-flight self-check that verifies reachability, identity, and handshake in the target environment;
+- the pre-flight result is not treated as an availability guarantee: after enablement, host loss still follows the declared fail-closed behavior and remains operator-diagnosable;
+- denial codes are diagnosable and disjoint: no-listener, admission-rejected, version-skew, and timeout are distinguishable rather than collapsed into one undifferentiated denial;
+- the real end-to-end contract — every frame of a complete transaction, over the real transport, in the real environment — is exercised before the gate is enabled;
+- comments or design text describing behavior the implementation does not perform are classified as defects, not documentation.
+
 ### 4.3 Corpus evolution
 
 A new material Qiven incident SHALL either:
@@ -252,13 +265,13 @@ The incident author does not silently tune selectors against only the incident w
 
 The native automated suite SHALL prove:
 
-1. identical normalized inputs produce byte-identical canonical bundles, manifests, and selection explanations;
-2. every output binds source repository revisions, generation ID, policy digest, schema versions, task digest, and bundle digest;
+1. identical normalized source closures, tasks, policies, budgets, and renderer builds produce byte-identical canonical selection bundles, manifests, and selection explanations; receipt issuance nonces and timestamps are checked for correct binding, not byte equality;
+2. every output binds the execution RuntimeGeneration, the separate ActivationGeneration, the full external repository source lock, policy digest, schema versions, task digest, and bundle digest;
 3. a changed canonical body without a changed path changes the correct digest and invalidates affected outputs;
 4. superseded and legacy sources do not appear as current rules;
 5. epistemic types cannot be promoted by imperative language in a lower-authority record;
 6. invalid selectors, source references, lifecycle states, and capability entries fail publication;
-7. receipts cannot be replayed across a changed task, risk, design digest, policy, generation, consumer profile, or expired live evidence;
+7. activation receipts cannot be replayed across a changed task, risk, source lock, policy, activation generation, renderer, consumer profile, or expired live evidence; a separate design-evidence/falsification binding rejects a changed design or candidate digest;
 8. partial index and bundle writes never become visible;
 9. index loss is recoverable from pinned canonical sources;
 10. activation does not mutate canonical repositories;
@@ -267,7 +280,7 @@ The native automated suite SHALL prove:
 
 ### 5.2 Determinism criterion
 
-For each fixture, execute activation at least 100 times across clean process starts. All canonical outputs and protected-source decisions MUST be identical. Timing and non-canonical diagnostic fields may differ only if excluded explicitly from the hashed manifest.
+For each fixture, execute activation at least 100 times across clean process starts. All canonical selection outputs and protected-source decisions MUST be byte-identical. `bundle_id` is deterministic, and no clock, random value, or volatile path participates in the canonical hashed payload. Receipts MAY have distinct issuance IDs and times while binding the same canonical bundle; the audit envelope is verified separately.
 
 ### 5.3 Fault matrix
 
@@ -286,7 +299,7 @@ At minimum, inject:
 - stale live-evidence receipt;
 - receipt journal unavailability.
 
-Every fault has a declared state: `Blocked`, `ReDeliberate`, `Stale`, or safe rebuild. Silent degradation to a smaller apparently ready bundle is forbidden.
+Every fault has a declared state: `Blocked`, `ReDeliberate`, `BudgetInsufficient`, `Stale`, or safe rebuild. Silent degradation to a smaller apparently ready bundle is forbidden.
 
 ---
 
@@ -327,7 +340,7 @@ A single protected miss fails the profile even when aggregate recall remains hig
 
 ### 6.3 Budget-pressure test
 
-For every fixture, rerun with budgets at 100%, 75%, and 50% of the default candidate allowance. Protected cognition MUST remain present. Optional candidates are removed in deterministic priority order. If protected material alone exceeds the hard budget, activation MUST return `ReDeliberate`; it MUST NOT truncate a protected rule invisibly.
+For every fixture, rerun with budgets at 100%, 75%, and 50% of the default candidate allowance. Protected cognition MUST remain present. Optional candidates are removed in deterministic priority order. If protected material alone exceeds the hard budget, activation MUST return `BudgetInsufficient`, as specified by the architecture; it MUST NOT truncate a protected rule invisibly. A subsequent human or policy re-deliberation may change the budget or scope but is not the machine failure code.
 
 ### 6.4 Mutation tests
 
@@ -356,7 +369,9 @@ Each accepted fixture is executed under two conditions:
 
 Both conditions receive the same task objective, permitted tools, implementation boundary, model/profile class, time limit, and required output schema. They do not share a session.
 
-The control is the real current process, not an intentionally weakened prompt. The activated condition receives no private hints outside the accepted bundle.
+The control is the real current process, not an intentionally weakened prompt. The activated condition receives no private hints outside the accepted bundle. For each run, count cumulative model input tokens through the sealed engineering brief, including initial context, the activation bundle or manual boot, on-demand source reads, and tool-returned text, using the same pinned tokenizer. Report identical system/harness overhead separately and exclude it equally from both comparisons. Compare actual delivered inputs, not the size of the entire manual cold-boot corpus.
+
+Descriptor construction is condition-blind and fixed before assignment. One pre-sealed normalizer derives a neutral task envelope from facts available in the current workflow: task objective, declared repository and revision, changed paths, path-prefix subsystem mapping, file-extension language mapping, declared phase, and declared risk class. Both conditions receive those same underlying facts. Runtime derives the activated condition's internal `TaskDescriptor` only from that envelope and mechanically observed facts. Judgment-bearing fields (`boundary_kinds`, `external_contracts`, `explicit_ids`, `signals`) remain empty unless the fixed normalizer can derive them without curator interpretation. Protected selectors depending on curator judgment are tested in Profile B but earn no Profile C utility credit. Supplying an expert-enriched descriptor to either condition invalidates the paired run; there is no alternate descriptor method selected after sealing.
 
 ### 7.2 Run count
 
@@ -368,7 +383,7 @@ Initial MVP-7 acceptance SHALL use:
 - randomized condition and fixture order;
 - no reuse of a consumer session between paired conditions.
 
-If output variance is large enough that one run changes the release conclusion, the acceptance owner SHALL add runs rather than choose the favorable sample.
+CA-0 seals a maximum run count, balanced batch increments, and an interval method valid for the planned analysis. If the lower bound remains inconclusive at the minimum run count, add the next prespecified batch across both conditions and all fixtures; never stop on a favorable individual run or discard an unfavorable one. If the maximum is reached without passing, the candidate fails.
 
 ### 7.3 Required consumer output
 
@@ -413,12 +428,12 @@ The activated cohort passes only if all of the following hold:
 3. the activated cohort median is at least 90/100;
 4. no rubric dimension falls below its critical floor;
 5. no fabricated authority, accepted decision, source, capability, or external contract appears;
-6. median active input volume is at least 60% lower than the measured manual cold-boot corpus;
+6. median actual input tokens delivered to activated consumers are at most 40% of the median delivered to controls, under the same accounting rule in Section 7.1;
 7. median time to a reviewable engineering brief is no worse than control;
-8. the activated condition lies on a strict Pareto improvement over control: either its mean score is at least 15 points higher, or its mean score is non-inferior within 3 points while using at least 60% fewer input tokens;
+8. one predeclared outcome path passes: (a) the equal-fixture-weighted mean score gain is at least 15 points and its one-sided 95% lower confidence bound exceeds zero; or (b) the one-sided 95% lower confidence bound for that score difference is at least -3 points while criterion 6 proves the input reduction;
 9. at least two distinct failure classes show correct pre-implementation stopping behavior where the control cohort proceeded on an unsupported assumption.
 
-Criterion 8 handles a legitimate ceiling case without weakening the required absolute score and zero-critical-miss rules.
+Before assignments, CA-0 seals the fixture-level score-difference estimator, independent-run clustering, one-sided interval method, tokenizer, and stopping rule for additional runs. Each fixture contributes equal weight, and every run remains in the analysis; an inconclusive interval fails pending more sealed runs. Path (b) is an efficiency/non-inferiority claim within the stated margin, not strict Pareto dominance or proof of a higher score. Criterion 8 handles a legitimate ceiling case without weakening the required absolute score and zero-critical-miss rules.
 
 ### 7.6 Scoring reliability
 
@@ -462,19 +477,25 @@ Depending on the task, accepted evidence includes:
 
 An author-generated test that encodes the same assumed payload, lifetime, or state machine is corroboration, not independent falsification.
 
+Fresh-context review has two disclosed independence classes. Routine R2 cognitive falsification MAY use a harness-created fresh agent session that receives only the sealed review package and no author reasoning trace; it is recorded as `fresh-cognitive-same-family-isolated-context`. Every R3 review, Profile C trial, and CA-5 review requires an orchestration boundary that independently creates the consumer, withholds the answer key and author trace, captures the output, and preserves the assignment record; it is recorded as `fresh-cognitive-orchestrated-isolation`. The owner accepts the resulting governed evidence but is not the transport layer, prompt relay, or routine debugger. A subagent sharing the author's conversation context qualifies under neither class.
+
+For a before-phase cognition claim, retain a separate observed delivery event binding the consumer invocation, receipt, bundle digest, and delivery time to an observed phase entry. A receipt issued after the design cannot be counted as evidence that cognition was active when the design began; when the harness cannot observe the entry/delivery boundary, record that coverage limit rather than treating publication-time validation as proof of earlier delivery.
+
+Governance note: adopting this transport model explicitly amends ADR-0036 and `qiven-context/collaboration/human-handoff-boundary.md`; it is not merely a reinterpretation of historical practice. The current contract expressly classifies owner launch and relay of fresh/isolated sessions as H1 and makes fresh-consumer acceptance roles H1-mandatory. The accepting root ADR MUST narrow that classification so mechanically verified session creation, sealed input transport, and sealed output capture inside an approved orchestration boundary are not inherently H1. H1 remains mandatory for owner credentials or devices, external isolation boundaries the orchestrator cannot cross, owner-named trust anchors, and owner-designated adjudication. Existing K4/K5 gates that explicitly name the owner remain unchanged unless separately amended. H2-H4 retain their existing claims, and governance mutation still requires H2 plus the root principal. Until that contract amendment lands, its current H1 classification remains authoritative.
+
 ### 8.3 Receipt requirements
 
 The falsification receipt SHALL bind:
 
-- task ID and activation receipt ID;
-- design and candidate revision digests;
+- task ID and activation receipt ID, including both generation IDs and the external source lock;
+- the separate design-evidence binding, design digest, and candidate revision digest;
 - risk class and challenged assumptions;
 - independence class and consumer/scorer profile;
 - evidence commands or artifact references;
 - findings and their severity;
 - disposition of every finding;
 - residual unknowns;
-- reactivation requirement after material design changes.
+- reactivation requirement when a material design change alters activation selectors; renewed falsification when the design or candidate digest changes.
 
 Publication fails if a required finding is unresolved or the bound candidate changed materially.
 
@@ -489,6 +510,7 @@ The reviewer is explicitly asked to disprove, not summarize:
 - Can the test pass because it copied the implementation's misconception?
 - Which lower layer already owns this capability?
 - Which supposedly current rule is actually superseded, advisory, or lower-authority?
+- Does the machine-declared boundary set completely describe the boundaries the design actually introduces, or did the design omit a kind that would require reactivation?
 - What evidence would force the design to stop or re-deliberate?
 
 ---
@@ -500,7 +522,7 @@ The reviewer is explicitly asked to disprove, not summarize:
 MVP-5 and MVP-6 SHALL be the first sustained consumers of TCA. Every material task records:
 
 - task/risk classification;
-- activation receipt;
+- activation receipt and observed model-input delivery event before the first design output, bound to the consumer invocation;
 - bundle size and activation latency;
 - protected and unresolved source counts;
 - semantic-owner decision;
@@ -522,7 +544,7 @@ A materially similar recurrence of any accepted critical fixture during the dogf
 
 Before MVP-7 Cognitive Utility acceptance:
 
-- every R2/R3 MVP-5 and MVP-6 task has a valid activation receipt;
+- every R2/R3 MVP-5 and MVP-6 task within the declared dogfood scope has a valid activation receipt and independently captured before-design model-input delivery under the qualified CA-2 entry path; an uninstrumented task is a coverage miss that fails Profile E and remains in the denominator;
 - every required independent-falsification receipt is present and bound to the published candidate;
 - no accepted critical scar recurs undetected before independent review;
 - no mature known hazard reaches owner-live H1 as its first detection surface;
@@ -531,7 +553,7 @@ Before MVP-7 Cognitive Utility acceptance:
 - median warm activation latency and write-path budgets meet Section 10;
 - all newly discovered material incidents are represented in the gold corpus or explicitly mapped to an existing class.
 
-H1 may still find genuinely external or previously unknown behavior. Such a finding is not automatically an activation failure, but its classification and evidence MUST be recorded.
+Profile C's isolated trial transport does not qualify the production CA-2 entry path by itself. The dogfood entry path must carry its own real-harness capture. H1 may still find genuinely external or previously unknown behavior. Such a finding is not automatically an activation failure, but its classification and evidence MUST be recorded.
 
 ---
 
@@ -568,7 +590,7 @@ Acceptance records:
 - protected/core/candidate proportions;
 - cache hit rate;
 - activation p50/p95/p99;
-- number and cause of `Blocked` and `ReDeliberate` results.
+- number and cause of `Blocked`, `ReDeliberate`, and `BudgetInsufficient` results.
 
 No average may hide an unbounded worst-case path on a supported corpus.
 

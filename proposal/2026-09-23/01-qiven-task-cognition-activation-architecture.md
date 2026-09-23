@@ -15,13 +15,14 @@
 
 Qiven SHALL add a native Runtime-side `TaskCognitionActivator` that compiles one immutable, bounded, explainable `TaskCognitionBundle` from:
 
-- one pinned `CanonicalCognitionBundle` / `RuntimeGeneration`;
+- one pinned `CanonicalCognitionBundle` and its execution `RuntimeGeneration`;
+- one activation source lock covering exact revisions and content digests of every external Devkit, Foundation, Runtime, or other repository source used by selection;
 - one normalized `TaskDescriptor`;
 - one canonical `ActivationPolicy`;
 - exact repository architecture and capability manifests at pinned revisions;
 - explicit live evidence receipts when the task depends on mutable external state.
 
-The activator SHALL return a `ContextActivationReceipt` that binds the delivered cognition to the task, source generation, policy, consumer profile, risk class, unresolved items, and bundle digest.
+The activator SHALL return a `ContextActivationReceipt` that binds the produced cognition to the task, source generation, exact dependency lock, policy, consumer profile, risk class, unresolved items, and bundle digest. Issuance alone does not prove delivery to an LLM; the observed harness must record that separately.
 
 The production path SHALL be native and local. It SHALL NOT revive the sealed Python Context compiler/retrieval system. It SHALL NOT call an LLM, embedding service, network service, or remote database to decide protected cognition.
 
@@ -98,6 +99,7 @@ Owns:
 - one machine-readable `runtime/cognition-activation-policy.yaml` instance;
 - one minimal `runtime/cognition-core.yaml` manifest of always-required source references;
 - schemas for Context-owned activation selectors;
+- after CA-0 atomically introduces the selector schema and bootstraps existing protected records, repository-gate enforcement that every newly created or materially revised protected-class canonical record carries valid activation selector metadata; an unclassified or selector-less protected record then fails the Context gate;
 - authoritative references to external engineering and architecture sources.
 
 Does not own:
@@ -134,7 +136,7 @@ Owns:
 - generic low-level types and primitives whose semantics are intrinsically foundational;
 - strict ownership, lifetime, representation, failure, portability, and cost laws;
 - a validated public-surface capability manifest for activation discovery;
-- generic hashing/digest, checked-range, immutable-byte, and result vocabulary needed by Runtime implementation.
+- generic hashing/digest, checked-range, immutable-byte, result, and byte-construction/encoding primitives that are separately admitted under ADR-0024. Foundation owns generic storage, bounds, ownership, and scalar-endian mechanics; the format owner retains framing, field order, length-prefix width, compatibility, and versioning.
 
 Does not own:
 
@@ -418,20 +420,22 @@ The activation index is a rebuildable derivative of an exact canonical bundle. I
 
 ### 9.2 Physical form
 
-Version 1 uses a separate immutable SQLite database:
+Version 1 uses a separate immutable SQLite database in a derivative sidecar:
 
 ```text
-bundle/
+canonical-bundle/                 # existing qiven-cognition-bundle-v1, immutable
   manifest.json
   snapshot.qvs
   policy.yaml
   source/...
-  activation/
-    index.sqlite
-    index-manifest.json
+activation-generations/<id>/     # new derivative, separately published
+  source-lock.json
+  source/...                  # exact external excerpts and capability manifests
+  index.sqlite
+  index-manifest.json
 ```
 
-The database is built in a private temporary directory, integrity-checked, hashed, then published with the cognition bundle through atomic pointer replacement. Runtime opens it read-only and immutable.
+The publisher resolves external source repositories from an exact, validated local Git revision lock and copies the needed files into the derivative generation; task activation does not fetch from the network or read a dirty checkout. The lock names each repository commit/tree, selected path, and content digest. The index manifest binds the existing canonical-bundle digest, its execution `RuntimeGeneration`, the activation policy, and the complete external source lock. A change to an external source creates a new `ActivationGeneration`; it does not silently mutate the already-published canonical bundle or by itself rotate the execution `RuntimeGeneration`. Build the sidecar privately, validate and hash it, then switch the activation-generation pointer atomically. Runtime opens the completed index read-only and immutable.
 
 Using SQLite here does not weaken the MVP rule that SQLite is not Context domain truth:
 
@@ -477,14 +481,16 @@ Index cache key:
 
 ```text
 sha256(
-  source_tree_oid ||
+  canonical_bundle_sha256 ||
+  runtime_generation_id ||
+  sorted_external_source_lock(repo_commit, tree_oid, path, content_sha256) ||
   activation_policy_sha256 ||
   schema_version ||
   publisher_build_id
 )
 ```
 
-Cache reuse is permitted only on exact key equality.
+Cache reuse is permitted only on exact key equality. `ActivationGeneration` identifies this complete closure. The original `RuntimeGeneration` still identifies the execution-control bundle under the Production MVP contract; the two identifiers MUST NOT be conflated.
 
 ---
 
@@ -494,7 +500,7 @@ The pipeline executes in this fixed order.
 
 ### Step 1 — Pin and validate generation
 
-Validate the active canonical bundle, activation index digest, policy digest, source revisions, and RuntimeGeneration. A partially published or stale generation is rejected.
+Validate the active canonical bundle, activation index digest, policy digest, full external source lock, execution `RuntimeGeneration`, and `ActivationGeneration`. A partially published or stale generation is rejected.
 
 ### Step 2 — Normalize the task
 
@@ -606,10 +612,12 @@ At minimum:
 ```json
 {
   "schema": "qiven-task-cognition-bundle-v1",
-  "bundle_id": "<128-bit-id>",
-  "task_id": "<128-bit-id>",
+  "bundle_id": "<deterministic-id>",
+  "task_id": "<stable-task-id>",
   "task_sha256": "<sha256>",
   "runtime_generation": "<id>",
+  "activation_generation": "<id>",
+  "external_source_lock_sha256": "<sha256>",
   "canonical_bundle_sha256": "<sha256>",
   "activation_policy_sha256": "<sha256>",
   "activation_index_sha256": "<sha256>",
@@ -627,10 +635,11 @@ At minimum:
     }
   ],
   "unresolved": [],
-  "created_at": "<rfc3339>",
   "publisher_build": "<build-id>"
 }
 ```
+
+Canonical selection files and their manifest contain no issuance timestamp, random identifier, or volatile path. `bundle_id` is deterministically derived from the canonical selection inputs without a self-referential hash; issuance time and nonce belong only to the receipt/audit envelope. Byte-identical source closure, task, policy, budget, and renderer yield byte-identical canonical bundle bytes. The proof compares those bytes and separately verifies the receipt binding.
 
 ### 11.3 Rendering law
 
@@ -654,7 +663,7 @@ It does not lead with historical narrative or governance ceremony when the task 
 
 ### 12.1 Purpose
 
-The receipt proves which task cognition was produced. It does not prove that a model understood it, and it does not grant execution or publication authority.
+The receipt proves which task cognition was produced. It does not prove that the bundle reached a model or that the model understood it, and it does not grant execution or publication authority. A separately captured harness delivery event is required for a before-phase delivery claim.
 
 ### 12.2 Required fields
 
@@ -666,6 +675,10 @@ The receipt proves which task cognition was produced. It does not prove that a m
   "task_sha256": "<sha256>",
   "bundle_sha256": "<sha256>",
   "runtime_generation": "<id>",
+  "activation_generation": "<id>",
+  "external_source_lock_sha256": "<sha256>",
+  "consumer_profile": "<profile>",
+  "renderer_build": "<build-id>",
   "activation_policy_sha256": "<sha256>",
   "phase": "design",
   "risk_class": "R2",
@@ -686,16 +699,18 @@ The receipt proves which task cognition was produced. It does not prove that a m
 A receipt becomes invalid when:
 
 - the normalized task changes materially;
-- the source RuntimeGeneration changes;
-- activation policy changes;
+- the source execution RuntimeGeneration or ActivationGeneration changes;
+- the external source lock, activation policy, or renderer semantics change;
 - the engineering phase changes and policy requires reactivation;
-- repository base revisions change;
+- repository base revisions change for a source or target bound to the task;
 - mutable evidence expires;
 - the design introduces a boundary kind absent from the task descriptor;
 - an unexpected failure class appears;
 - a critical source is superseded or withdrawn.
 
-Changing implementation details inside an already activated design does not automatically invalidate the receipt unless task scope, boundary, or risk changes.
+An activation receipt is issued before the design exists and therefore never contains a design digest. A later design edit alone does not invalidate it unless the edit changes a selector-bearing task attribute, scope, boundary, risk, source revision, or required evidence. Devkit binds the exact design digest to the pre-existing receipt in a separate design-evidence record and requires renewed independent review for a changed design/candidate digest. It must not backdate or regenerate a pre-design activation receipt to make late activation look timely.
+
+R2/R3 design evidence carries a machine-readable `declared_boundary_kinds` set. Devkit mechanically compares that set with the task descriptor bound to the receipt; any added kind invalidates the receipt and requires reactivation. The remaining seam is completeness: a design can omit a boundary it actually introduces. The independent reviewer MUST challenge that semantic completeness. It is not asked to perform a set comparison that the gate can enforce directly.
 
 ---
 
@@ -726,7 +741,7 @@ cognition index status
 cognition index rebuild <exact-source-revision>
 ```
 
-Before the resident service integration is accepted, a bounded one-shot native command may exercise the same core library. There SHALL NOT be two activation semantics.
+Before the resident service integration is accepted, a bounded one-shot native command may exercise the same core library. There SHALL NOT be two activation semantics. A successful CLI call or SessionStart refresh only proves activation computation or session setup; neither proves that the resulting bundle reached a model invocation before design.
 
 ### 13.3 Design evidence
 
@@ -734,7 +749,11 @@ R2/R3 design documents include:
 
 ```text
 Task descriptor digest:
-Activation receipt:
+Activation receipt (issued before design):
+ActivationGeneration and external source lock:
+Harness delivery event and phase-entry timestamp, when a before-phase claim is made:
+Design-evidence digest (computed after the design exists):
+Declared boundary kinds:
 Activated protected rules:
 Semantic owner decision:
 Capability reuse decision:
@@ -748,12 +767,16 @@ Independent falsification plan:
 For R2/R3 publication, Devkit verifies:
 
 - receipt schema and signature/digest integrity;
-- exact source RuntimeGeneration;
-- task/design digest binding;
+- exact source RuntimeGeneration and ActivationGeneration, including the external source lock;
+- exact task digest on the activation receipt plus a separate design-evidence record binding the design digest, receipt ID, and candidate revision;
+- exact equality between the design's declared boundary-kind set and the set bound to the receipt, or a newer pre-design receipt covering the changed set;
 - no unresolved blocker;
 - required independent evidence receipt exists;
 - design compliance map covers every activated protected rule;
-- changed paths stay inside declared task scope or trigger reactivation.
+- changed paths stay inside declared task scope or trigger reactivation;
+- for a claimed before-design/implementation/review activation, the observed phase-entry and harness delivery events show that this exact bundle reached the named consumer before that phase began. If that event cannot be observed, publication may prove receipt conformance but MUST NOT claim before-phase delivery or universal task interception.
+
+CA-2 qualifies at least one real, controlled R2/R3 task-entry path before MVP-5 dogfood: the task is admitted, the exact bundle is delivered as model-visible input, and the first design output is captured under the same invocation chain. Test withheld, altered, and late delivery. The present MVP-4 `SessionStart`/`PreToolUse` hook observes session and tool events, not model-input delivery or design start by itself; use it only for the events it actually proves. If no supported harness ingress or approved orchestrator can provide and capture this boundary, CA-2 remains open. A publication-time receipt cannot make an unobserved earlier design compliant.
 
 The gate does not attempt to judge arbitrary natural-language correctness. It verifies declared, typed relationships and stops when evidence is missing.
 
@@ -797,7 +820,7 @@ It excludes the author's hidden reasoning transcript and conclusion-oriented coa
 }
 ```
 
-An authoring session integrates findings, updates the design, and obtains a new receipt when the design digest changes materially.
+An authoring session integrates findings and renews the design-evidence/falsification binding for a changed design digest. It obtains a new activation receipt only when the task's selector-bearing facts or pinned sources change.
 
 ---
 
@@ -855,24 +878,24 @@ One publisher builds a candidate cognition generation. Multiple task activations
 
 Publication sequence:
 
-1. resolve exact canonical Git revisions;
-2. build canonical bundle in private storage;
-3. build activation index from that bundle;
+1. pin the existing immutable canonical bundle and execution RuntimeGeneration;
+2. resolve and validate every external repository revision and source digest into a complete source lock;
+3. build a separate activation-index sidecar from that exact closure in private storage;
 4. validate schemas, references, lifecycle, index integrity, and digests;
-5. persist generation metadata;
-6. atomically switch active-generation pointer;
-7. mark old unconsumed receipts stale according to policy.
+5. persist ActivationGeneration metadata;
+6. atomically switch the activation-generation pointer;
+7. mark old unconsumed activation receipts stale according to policy, without rotating execution Allows solely because an external cognition source changed.
 
 ### 17.2 Crash semantics
 
 - Crash before pointer switch: candidate is unactivated and may be deleted/rebuilt.
-- Crash after pointer switch but before acknowledgement: recover pointer and manifest; classify activation by exact digest.
+- Crash after activation-pointer switch but before acknowledgement: recover pointer and manifest; classify activation by exact digest.
 - Partial index never becomes active.
 - RuntimeJournal records control facts only: generation identity, build outcome, receipt issuance, and barriers. The index content remains external derivative material.
 
 ### 17.3 Task-cache semantics
 
-Task bundles may be cached by exact normalized key. A cache hit revalidates manifest/digests and mutable-evidence freshness. Approximate task matching is forbidden for receipt reuse.
+Task bundles may be cached only by an exact normalized key covering task digest, both generation IDs, the complete source lock, policy, consumer profile, renderer build, budget, and any live-evidence binding. A cache hit revalidates manifest/digests and mutable-evidence freshness. Approximate task matching is forbidden for receipt reuse.
 
 ---
 
@@ -1003,7 +1026,7 @@ No subtraction occurs before replacement acceptance proves semantic coverage.
 
 Task Cognition Activation v1 is complete when:
 
-1. one exact canonical generation produces a reproducible activation index;
+1. one exact canonical bundle and external source lock produce a reproducible activation index in a separate derivative sidecar;
 2. one normalized task produces a deterministic bundle and receipt;
 3. every protected applicable rule is included regardless of candidate budget;
 4. unknown critical applicability fails visibly;
