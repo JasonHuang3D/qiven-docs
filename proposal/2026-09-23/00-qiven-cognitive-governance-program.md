@@ -564,7 +564,7 @@ A program-level review is mandatory when any of the following occurs:
 - activation cost causes a sanctioned workflow to be bypassed;
 - the same author assumption appears in design, implementation, and tests;
 - active-context size grows by more than 25% without a measured quality gain;
-- the Task Cognition Activation program misses its declared transition bound — the program obligation records an explicit stall trigger (a session or calendar budget for CA-1 to reach Profile A and Profile B pass), and missing it forces a program review rather than silent drift.
+- CA-1 reaches the close of its declared implementation batch without passing Profile A and Profile B; further feature work then stops for a recorded program review rather than extending the transition silently. Session count and calendar time may be reported for planning, but they do not waive evidence or act as engineering truth.
 
 ---
 
@@ -621,11 +621,12 @@ The roadmap companion defines exact sequencing. At governance level, the immedia
 
 1. Treat the MVP-4 H1 double failure as a program-level cognition/control signal, not merely two local defects.
 2. Keep the Runtime control MVP architecture and its narrow enforcement claim intact.
-3. Insert the `CA-0` through `CA-2` cognition-activation gates before substantive MVP-5 implementation proceeds.
-4. Use MVP-5 and MVP-6 as dogfood consumers of the activation path.
-5. Amend MVP-7 to require both the original control-loop evidence and a separate Cognitive Utility Gate.
-6. Defer K5 lossless token compression until task activation is accepted on an uncompressed reference.
-7. Remove the brute-force active-memory-title sweep and shrink mandatory boot prose only after the production activation path passes replacement acceptance.
+3. Close reusable byte-representation debt through the separately accepted RR-0 semantic-ownership batch; do not count that remediation as evidence that cognition activation works.
+4. Insert the `CA-0` through `CA-2` cognition-activation gates before substantive MVP-5 implementation proceeds.
+5. Use MVP-5 and MVP-6 as dogfood consumers of the activation path.
+6. Amend MVP-7 to require both the original control-loop evidence and a separate Cognitive Utility Gate.
+7. Defer K5 lossless token compression until task activation is accepted on an uncompressed reference.
+8. Remove the brute-force active-memory-title sweep and shrink mandatory boot prose only after the production activation path passes replacement acceptance.
 
 ---
 

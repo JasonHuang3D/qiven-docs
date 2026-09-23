@@ -29,7 +29,7 @@ The two tracks converge at MVP-7, but their evidence remains separate.
 
 The immediate sequencing decision is:
 
-> Freeze substantive MVP-5 work. Start CA-0 immediately from the MVP-4 evidence while a strictly bounded MVP-4 corrective lane uses an explicit incident pack and independent falsification to rerun the original real H1 gate. CA-1 begins only after both CA-0 and MVP-4 H1 pass. Qiven then completes CA-1 and CA-2 before substantive MVP-5 implementation resumes. MVP-5 and MVP-6 dogfood the accepted activation path. MVP-7 requires both the original Runtime Control Gate and the new Cognitive Utility Gate.
+> Freeze substantive MVP-5 work. Start CA-0 immediately from the MVP-4 evidence while a strictly bounded MVP-4 corrective lane uses an explicit incident pack and independent falsification to rerun the original real H1 gate. In the same bounded interval, complete RR-0, the separate byte-representation remediation decision and consolidation batch. CA-1 begins only after CA-0, MVP-4 H1, and RR-0 pass. Qiven then completes CA-1 and CA-2 before substantive MVP-5 implementation resumes. MVP-5 and MVP-6 dogfood the accepted activation path. MVP-7 requires both the original Runtime Control Gate and the new Cognitive Utility Gate.
 
 This pause is bounded. It is not a rewrite of Runtime, Context, Devkit, or Foundation, and it SHALL NOT revive the approximately 300-second Python Context compiler/gate.
 
@@ -80,8 +80,10 @@ This amendment does not retroactively invalidate valid MVP-0 through MVP-3 evide
 flowchart TD
     I["MVP-4 incident evidence"] --> C0["CA-0 Consumer contract"]
     I --> R["Bounded MVP-4 repair + H1"]
+    I --> B["RR-0 byte representation"]
     C0 --> C1["CA-1 Native activation core"]
     R --> C1
+    B --> C1
     C1 --> C2["CA-2 Devkit gate"]
     C2 --> M5["MVP-5 typed records"]
     M5 --> C3["CA-3 MVP-5 dogfood"]
@@ -94,6 +96,8 @@ flowchart TD
 CA-3 and CA-4 are not detached projects completed after their matching MVPs. They are exit dimensions of the matching batches. The diagram shows evidence dependency, not permission to defer cognition integration until implementation is finished.
 
 The bounded MVP-4 lane may correct only the already identified hook-adapter and acceptance defects. It receives a manually curated, digested incident pack containing the applicable lifetime, payload-contract, IPC, and H1 rules plus independent review. It may not introduce new feature breadth or proceed to MVP-5. This temporary pack is evidence for CA-0, not a competing activation architecture.
+
+RR-0 is a scheduling prerequisite because further Runtime work must not reproduce known generic byte-mechanics duplication. It remains a separate engineering claim: passing RR-0 does not contribute evidence that task activation is correct or useful.
 
 ---
 
@@ -136,6 +140,31 @@ Define what the LLM consumer needs at each engineering boundary and establish a 
 - no design assumes that more prompt volume equals better attention;
 - the program has explicit non-goals and a rollback boundary.
 
+### RR-0 — Byte Representation Remediation (Separate Supporting Batch)
+
+#### Objective
+
+Close the reusable byte-ownership and encoding gap exposed during MVP-4 without turning a local incident remedy into TCA architecture or moving Runtime format semantics into Foundation.
+
+#### Work
+
+- inventory the concrete duplicated byte-building and scalar put/get mechanics and bind the inventory to exact revisions;
+- issue a separate ADR-0024 admission record deciding whether an owning bounded byte builder or additional scalar codecs are intrinsically Foundation semantics;
+- reuse the existing `ByteWriter` and fixed-width endian facilities where their contracts already fit;
+- implement only the accepted generic storage, bounds, ownership, and scalar-endian mechanics in Foundation;
+- keep framing, message structure, field order, length-prefix width, compatibility, and versioning with each Runtime format owner;
+- consolidate admitted generic mechanics in Runtime without silently changing any existing representation;
+- record explicit decisions and migration tests for every u32/u64 prefix difference;
+- perform a one-time assembly/cost comparison only for an actual zero-cost or performance claim.
+
+#### Exit gate
+
+- every inventoried duplicate is either consolidated or retained by an explicit semantic-owner decision;
+- Foundation's admission record proves the primitive is stable and product-free rather than merely convenient;
+- existing wire, journal, persistent, and bundle formats are byte-compatible unless a separately governed migration is accepted;
+- old defective paths fail regression tests;
+- RR-0 evidence is reported independently and is not counted toward Profile A, Profile B, or Cognitive Utility acceptance.
+
 ### CA-1 — Native Deterministic Activation Core
 
 #### Objective
@@ -144,7 +173,7 @@ Build the smallest native, local, explainable path that maps a pinned RuntimeGen
 
 #### Work
 
-- land the Foundation byte-serialization vocabulary prerequisite and the runtime mechanical consolidation batch that consumes it;
+- reuse accepted lower-layer byte ownership and encoding capabilities; CA-1 MUST NOT create another Runtime-local generic byte codec;
 - implement task normalization and observed-versus-claimed provenance;
 - validate `runtime/cognition-core.yaml` and `runtime/cognition-activation-policy.yaml`;
 - ingest exact pinned Git/tree sources already admitted by the Runtime cognition publisher;
@@ -189,7 +218,7 @@ Make activation an ordinary engineering boundary rather than an optional command
 - require a valid receipt before R2/R3 design, implementation publication, and review;
 - add the cognition compliance map to engineering design evidence;
 - define `qiven-cognitive-falsification-receipt-v1`;
-- add fresh-context adversarial review for required R2/R3 risks, with the tiered transport channels defined by the acceptance protocol (routine: harness-native fresh subagent with a sealed package; milestone and R3: owner-relayed isolation boundary);
+- add fresh-context adversarial review for required R2/R3 risks using the isolation classes defined by the acceptance protocol; H1-H4 remain separate owner-authority or real-environment evidence, never a review transport mechanism;
 - ensure material design or task changes trigger reactivation;
 - make missing/stale/unresolved receipts fail visibly without granting new execution authority;
 - keep the current manual boot path available in shadow mode.
@@ -336,9 +365,10 @@ Keep the original MVP-4 scope and exit gate. Add only the following evidence req
 - classify the payload-contract and borrowed-lifetime failures under the scar lifecycle;
 - add regressions that fail for the actual prior implementations, not merely the final shape;
 - obtain independent evidence for the real producer payload and stored-payload lifetime;
+- bind every incident-specific assertion below to an exact H1 artifact, accepted incident record, or implementation revision before it becomes canonical project truth;
 - resolve the connection-model contradiction (a server serving one frame per connection while the client sends two on the same connection) through an explicit design decision, proven by a real-pipe multi-frame contract test;
 - split the undifferentiated host-unavailable denial into diagnosable classes (no listener, admission rejected, version or secret skew, timeout) and remove comments or design claims the implementation does not honor;
-- ship the H1 kit with an enable-gated pre-flight self-check — host reachability, identity, and handshake must pass in the target environment before the live hook configuration is enabled;
+- ship the H1 kit with an enable-gated pre-flight self-check — host reachability, identity, and handshake must pass in the target environment before the live hook configuration is enabled; the check is not an availability guarantee and does not weaken fail-closed behavior after enablement;
 - rerun the real H1 until the original exit gate passes;
 - do not declare MVP-4 complete based only on local tests or a code merge.
 
@@ -394,7 +424,7 @@ The release report presents two ledgers:
 - `runtime/cognition-activation-policy.yaml`;
 - typed activation metadata for scars, decisions, obligations, and source references;
 - lifecycle validation and exact source/digest rules;
-- repository-gate rejection of protected-class canonical records that lack activation selector metadata;
+- after the CA-0 schema/bootstrap transaction, repository-gate rejection of newly created or materially revised protected-class canonical records that lack valid activation selector metadata;
 - incident records for the MVP-4 H1 failures;
 - activation acceptance evidence locations.
 
@@ -440,7 +470,7 @@ The unified single-session engineering model remains. Only high-risk falsificati
 #### Add before MVP-5
 
 - a machine-readable capability surface pointing to existing public primitives and their authoritative contracts;
-- the growing-buffer byte-serialization vocabulary (bounded builder, fixed-width endian put/get, length-prefixed field helpers) as a CA-1 prerequisite, admitted under the semantic-ownership criterion with a one-time zero-cost assembly comparison note;
+- a separately reviewed ADR-0024 admission decision for any missing owning byte-construction primitive exposed by the MVP-4 incident; Foundation owns only generic storage/bounds/ownership and scalar-endian mechanics, never a Runtime format's field order, prefix width, framing, compatibility, or versioning;
 - missing genuinely generic primitives only when their semantics satisfy Foundation's admission law;
 - tests/contract documentation for ownership, representation, failure, and cost behavior of those primitives.
 
@@ -467,7 +497,7 @@ Repeated use is evidence to inspect ownership, not automatic proof that Foundati
 - activation receipt and validator;
 - one-shot native control surface over the production library;
 - activation observability and fault tests;
-- a mechanical serialization-consolidation batch replacing hand-rolled byte-packing sites and duplicate put/get definitions with the Foundation vocabulary, with divergent length-prefix widths reconciled per format family through an explicit representation decision rather than silent unification; the batch rides the CA-1 vocabulary work and is part of its regression evidence.
+- a separate pre-MVP-5 representation-remediation batch that replaces duplicated generic byte-packing mechanics with accepted Foundation capabilities while leaving framing and prefix-width semantics with each Runtime format owner. Divergent u32/u64 prefixes require explicit per-format representation decisions and migration tests; they are never silently unified. This batch is tracked independently from CA-1 and is not evidence that activation works.
 
 #### Add during MVP-5/MVP-6
 
@@ -595,7 +625,7 @@ Rollback does not roll back a valid canonical record commit. It changes which de
 
 The interim is heavier than either endpoint: until replacement acceptance, activation receipts, compliance maps, and falsification receipts are added work on top of the unreduced manual path. Two controls bound the interim:
 
-1. **Stall trigger.** The CA program obligation records an explicit transition bound — a declared session or calendar budget for CA-1 to reach Profile A and Profile B pass. Missing the bound forces a program review (descope, re-plan, or re-deliberate the transition explicitly); it never resolves by silent drift. The bound is set at CA-0 and may be amended only by a recorded decision.
+1. **Stall trigger.** CA-0 defines one bounded CA-1 implementation batch with exact scope, resource ceiling, and exit evidence. If that batch closes or an exit attempt fails without Profile A and Profile B passing, further feature work stops for a recorded program review. Session count and calendar time remain planning telemetry; they never create pressure to waive evidence or declare a partial result complete.
 2. **Declared program packs.** During the transition, CA-batch work itself MAY use manually curated, digested cognition packs under the same rules as the MVP-4 incident pack: each pack is recorded, pinned to exact source revisions, expiry-dated to the phase it serves, and treated as evidence toward activation metadata. A program pack is never a competing activation architecture and never a permanent substitute; an expired pack is removed with its obligation closed.
 
 ---
@@ -662,7 +692,9 @@ Historical ADRs and memories are not edited to pretend this design always existe
 
 ### Acceptance transaction
 
-The transaction that accepts this amendment records, in the same commit: the MVP-4 status reclassification — implementation exists, batch not accepted while the real H1 exit gate is unpassed — in `state/current.md` and `state/active-work.yaml`, so that no competing MVP-4 status survives in compact current state; and the canonical landing homes below. Historical session records are not edited.
+The root acceptance transaction in `qiven-context` records, in one commit, the accepting ADR, the MVP-4 status reclassification — implementation exists, batch not accepted while the real H1 exit gate is unpassed — and consistent updates to `state/current.md` and `state/active-work.yaml`, so that no competing compact status survives. Context-owned canonical documents and selector metadata land in that transaction.
+
+Runtime-owned documents land through separately validated `qiven-runtime` commit(s). The Context acceptance record binds their exact revisions as prerequisites or explicit pending follow-ups; it does not claim atomicity across Git repositories. After owner acceptance, the deliberation copies in this repository move from `proposal/<date>/` to `accepted/<acceptance-date>/` under this repository's README. Historical session records are not edited.
 
 ### Canonical landing homes
 
@@ -673,7 +705,7 @@ The transaction that accepts this amendment records, in the same commit: the MVP
 | Cognitive Effectiveness Acceptance Protocol | `qiven-context/collaboration/cognitive-effectiveness-acceptance.md` |
 | Runtime Production MVP Roadmap Amendment | `qiven-runtime/docs/architecture/runtime-mvp-roadmap-amendment.md` |
 
-The root ADR references these homes instead of duplicating their bodies. Every normative rule introduced by these documents carries activation selector metadata from birth — source category, applicable phase, and risk class — so that the program's own corpus is activation-ready on landing and never becomes undifferentiated mandatory prose.
+The root ADR references these homes instead of duplicating their bodies. CA-0 defines the selector schema before gate enforcement. Each canonical landing commit includes either rule-level metadata or a validated companion manifest that maps every normative rule to source category, applicable phase, risk class, and exact source anchor. The bootstrap commit covers these four documents before the gate begins rejecting future protected records, so the program's own corpus never becomes undifferentiated mandatory prose.
 
 ---
 

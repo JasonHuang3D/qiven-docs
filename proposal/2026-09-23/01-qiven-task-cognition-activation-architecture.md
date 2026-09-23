@@ -98,7 +98,7 @@ Owns:
 - one machine-readable `runtime/cognition-activation-policy.yaml` instance;
 - one minimal `runtime/cognition-core.yaml` manifest of always-required source references;
 - schemas for Context-owned activation selectors;
-- repository-gate enforcement that every protected-class canonical record carries activation selector metadata at creation — a protected record without selectors fails the Context gate;
+- after CA-0 atomically introduces the selector schema and bootstraps existing protected records, repository-gate enforcement that every newly created or materially revised protected-class canonical record carries valid activation selector metadata; an unclassified or selector-less protected record then fails the Context gate;
 - authoritative references to external engineering and architecture sources.
 
 Does not own:
@@ -135,7 +135,7 @@ Owns:
 - generic low-level types and primitives whose semantics are intrinsically foundational;
 - strict ownership, lifetime, representation, failure, portability, and cost laws;
 - a validated public-surface capability manifest for activation discovery;
-- generic hashing/digest, checked-range, immutable-byte, result, and growing-buffer byte-serialization vocabulary (bounded builder with fixed-width endian put/get and length-prefixed field helpers) needed by Runtime implementation, admitted under the accepted semantic-ownership criterion with a one-time zero-cost assembly comparison note.
+- generic hashing/digest, checked-range, immutable-byte, result, and byte-construction/encoding primitives that are separately admitted under ADR-0024. Foundation owns generic storage, bounds, ownership, and scalar-endian mechanics; the format owner retains framing, field order, length-prefix width, compatibility, and versioning.
 
 Does not own:
 
@@ -698,7 +698,7 @@ A receipt becomes invalid when:
 
 Changing implementation details inside an already activated design does not automatically invalidate the receipt unless task scope, boundary, or risk changes.
 
-Boundary-kind growth is a declared self-report seam: the engine cannot mechanically detect that a design introduced a boundary kind absent from the task descriptor. The independent reviewer is the backstop for this seam and MUST explicitly verify that the candidate design's boundary-kind set remains a subset of the declared task descriptor's set, or that a reactivation occurred.
+R2/R3 design evidence carries a machine-readable `declared_boundary_kinds` set. Devkit mechanically compares that set with the task descriptor bound to the receipt; any added kind invalidates the receipt and requires reactivation. The remaining seam is completeness: a design can omit a boundary it actually introduces. The independent reviewer MUST challenge that semantic completeness. It is not asked to perform a set comparison that the gate can enforce directly.
 
 ---
 
@@ -738,6 +738,7 @@ R2/R3 design documents include:
 ```text
 Task descriptor digest:
 Activation receipt:
+Declared boundary kinds:
 Activated protected rules:
 Semantic owner decision:
 Capability reuse decision:
@@ -753,6 +754,7 @@ For R2/R3 publication, Devkit verifies:
 - receipt schema and signature/digest integrity;
 - exact source RuntimeGeneration;
 - task/design digest binding;
+- exact equality between the design's declared boundary-kind set and the set bound to the receipt, or a newer receipt covering the changed set;
 - no unresolved blocker;
 - required independent evidence receipt exists;
 - design compliance map covers every activated protected rule;
