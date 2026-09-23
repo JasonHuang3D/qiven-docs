@@ -383,7 +383,7 @@ Initial MVP-7 acceptance SHALL use:
 - randomized condition and fixture order;
 - no reuse of a consumer session between paired conditions.
 
-CA-0 seals a maximum run count, balanced batch increments, and an interval method valid for the planned analysis looks. If the lower bound remains inconclusive at the minimum run count, add the next prespecified batch across both conditions and all fixtures; never stop on a favorable individual run or discard an unfavorable one. If the maximum is reached without passing, the candidate fails.
+CA-0 seals a maximum run count, balanced batch increments, and an interval method valid for the planned analysis. If the lower bound remains inconclusive at the minimum run count, add the next prespecified batch across both conditions and all fixtures; never stop on a favorable individual run or discard an unfavorable one. If the maximum is reached without passing, the candidate fails.
 
 ### 7.3 Required consumer output
 
