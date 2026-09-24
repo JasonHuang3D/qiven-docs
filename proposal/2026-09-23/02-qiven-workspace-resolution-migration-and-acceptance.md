@@ -43,6 +43,12 @@ The first implementation batch SHALL inventory every active resolver-shaped mech
 
 - TCA activation publication -> exact Context, Devkit, Foundation, Runtime, and capability-source revisions with path filters and per-file digests (CA-1's accepted source-lock contract)
 
+### Owner-run and harness entrypoint edges
+
+- MVP H1 kit cmd wrappers -> repository tools and build-dir binaries (double-click working-directory assumptions; package self-containment per the accepted H1 kit standard — the 2026-09-24 pre-flight failure of kit `0.1.0-g6ebf6ff6` is the governing incident);
+- workspace hook router (PreToolUse) -> classified command text (its `qiven gate`/`qiven exec` anchors must track the real entrypoint spelling and re-call form);
+- repository-local launchers/shims -> Devkit discovery and consumer-local pins.
+
 Each edge is classified as:
 
 ~~~text
@@ -71,6 +77,7 @@ Reuse the already completed CA-0 source inventory and 2026-09-24 exit report as 
 - Operator/template copies and their exact implementation provenance (Context currently pins Devkit d1d2a3a while Devkit main is 223eaaa; Runtime carries a managed Operator copy — do not assume one effective implementation without proof);
 - Toolchain resolver copies;
 - TCA external-source requirements;
+- owner-run entrypoint environment assumptions: H1 kit wrapper working-directory dependencies, hook router command-text anchors, and launcher/shim discovery paths (the 2026-09-24 kit pre-flight incident is the motivating evidence — verification environments and owner-live environments must not silently resolve differently);
 - existing platform-specific build/CI entry paths (the current Runtime CI matrix dispatches Linux/macOS as well as Windows, uses raw cmake -S, and its Windows-labeled SQLite source target links advapi32).
 
 Capture the current successful graph at exact revisions, recording both selected commits and their relationship to canonical main or candidate branches. Identify provision contracts, operation-specific closure, and the control-repo bootstrap input.
@@ -460,6 +467,7 @@ Scheduling law:
 4. WR-3 through WR-6 move build and tooling classes only after their own shadow/standalone/CI proofs; they do not silently extend CA-1 or postpone CA-2.
 5. WR-7 changes TCA's repository selector only after the full source-lock equivalence proof and an owner-accepted governance amendment. It preserves the separate RuntimeGeneration and selective ActivationGeneration invalidation.
 6. If a proposed workspace change actually requires altering ADR-0050's sequence or CA-1 ceiling, record the conflict and obtain root governance re-deliberation before implementing that change.
+7. The program carries its own stall trigger, symmetric to CA-1's. If a WR stage misses its declared exit twice, or if WR-2 shadow evidence plus the Profile B conflict fixture shows the observed defect classes already closed at shadow level while Profile J does not demonstrate further measured burden reduction from cutover, the program halts at shadow validation and records the residual explicitly; shadow mode (machine-readable census, typed conflict detection, baseline-split reporting) is a legitimate terminal state, not a failure. Progression from a shadow stage to any authority-touching step — workspace-control repository creation in WR-1, or a class cutover in WR-3..WR-7 — is an owner decision on measured evidence, not a default. This trigger exists so the program cannot itself become the second unbounded infrastructure detour that §0 excludes.
 
 This keeps the workspace architecture an explicit follow-on improvement without converting an ongoing acceptance batch into an unbounded infrastructure rewrite.
 
@@ -475,7 +483,8 @@ If accepted, canonical Qiven governance should create:
 4. a tracked WR-0 through WR-8 migration obligation;
 5. a revised cross-repository CMake convention stating that CMake consumes a resolved graph rather than performing resolution;
 6. a TCA amendment, after WR-7 shadow equivalence and before WR-7 cutover, binding selected external repository identity to WorkspaceGeneration while preserving ADR-0050's complete source-lock fields and cache invalidation scope;
-7. a static Devkit gate preventing new governed root+pin/sibling-resolution patterns after migration.
+7. a static Devkit gate preventing new governed root+pin/sibling-resolution patterns after migration;
+8. an in-force-constraints clause: this program changes dependency discovery and revision identity only. ADR-0048's bounded process-custody law, ADR-0049's H1-kit self-containment standard, and ADR-0051's long-command routing (still PROPOSED at 2026-09-24 — it must not be treated as accepted) are untouched by WR discovery changes and remain binding on whatever entrypoint lands; any WR stage that changes an entrypoint form (workspace bootstrap launchers, generation-bound Operator invocation) must re-prove hook-router classification and H1-kit self-containment in the same batch, because both mechanisms anchor on the current entrypoint spelling and packaging.
 
 Historical ADRs and incident records remain unchanged. New decisions refer to shim-plus-pin as a superseded stage rather than rewriting history.
 

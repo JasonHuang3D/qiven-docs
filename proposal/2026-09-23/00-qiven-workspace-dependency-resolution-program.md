@@ -113,6 +113,12 @@ cognition source resolver   -> TCA external source lock
 
 That would preserve the same class of attention and consistency failure that TCA is intended to reduce.
 
+### 1.6 Owner-run entrypoints can resolve differently than verification runs (2026-09-24 incident)
+
+The same defect class exists outside CMake and outside SHA pins. On 2026-09-24 the MVP-4 H1 pre-flight (`preflight.cmd` of kit `0.1.0-g6ebf6ff6`) failed in the owner's hands at its host-boot step: `qiven-runtime-host.exe` derives its default profile from the process working directory (`current_path()/config/profiles/zcode-jason-context-record-mvp.yaml`), and the `--root` flag re-points the governed root without re-pointing the profile. The session-side verification of the same kit ran with a working directory in which that profile file exists and passed; the double-clicked owner-run wrapper ran with the kit folder as the working directory, and the packaged kit never carried `config/profiles/`, so the host exited during boot. Two ambient facts — invocation working directory and package self-containment — silently differed between the verifying environment and the owner-live environment, and only the owner observed the failure.
+
+This is "no ambient success" (WG-3) in executable form: an entrypoint whose resolution depends on where it is invoked from is a distributed resolver even when no SHA literal is visible. The migration census must therefore cover owner-run entrypoints (H1 kit wrappers, launchers, hook command anchors), not only CMake and Python discovery paths.
+
 ---
 
 ## 2. Problem Classification
