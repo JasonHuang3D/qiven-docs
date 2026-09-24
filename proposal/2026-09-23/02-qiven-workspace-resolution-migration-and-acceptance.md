@@ -14,7 +14,7 @@ The migration SHALL remove dependency-resolution attention debt without creating
 
 The program therefore migrates one dependency class at a time behind a dual-resolution proof. Substantive Runtime/TCA work should stop only at explicit entry/exit gates defined below, not for an open-ended workspace rewrite.
 
-The first accepted workspace milestone is shadow validation: a machine-readable WorkspaceGeneration reproduces the closure of the current build and detects conflicts the current build can hide. Exclusive authority for revision selection comes later, after governed migration, standalone/CI proof, and TCA source-lock equivalence. ADR-0046 and ADR-0050 remain in force meanwhile.
+The first accepted workspace milestone is shadow validation: a machine-readable WorkspaceGeneration reproduces the closure of the current build and detects conflicts the current build can hide. The locked Devkit resolver may bootstrap from its verified identity to validate the graph, but no general Operator task or CMake target runs before that validation. Exclusive authority for revision selection comes later, after governed migration, standalone/CI proof, and TCA source-lock equivalence. ADR-0046 and ADR-0050 remain in force meanwhile.
 
 ---
 
@@ -68,15 +68,16 @@ Reuse the already completed CA-0 source inventory and 2026-09-24 exit report as 
 - sibling fallbacks;
 - per-consumer pins;
 - CMake public targets;
-- Operator/template copies;
+- Operator/template copies and their exact implementation provenance (Context currently pins Devkit d1d2a3a while Devkit main is 223eaaa; Runtime carries a managed Operator copy — do not assume one effective implementation without proof);
 - Toolchain resolver copies;
-- TCA external-source requirements.
+- TCA external-source requirements;
+- existing platform-specific build/CI entry paths (the current Runtime CI matrix dispatches Linux/macOS as well as Windows, uses raw cmake -S, and its Windows-labeled SQLite source target links advapi32).
 
 Capture the current successful graph at exact revisions, recording both selected commits and their relationship to canonical main or candidate branches. Identify provision contracts, operation-specific closure, and the control-repo bootstrap input.
 
 **Exit:**
 
-- every active cross-repository edge and its provided contract is represented;
+- every active cross-repository edge and its provided contract is represented, with a recorded supported-platform/CI claim instead of inferring support from the matrix;
 - no unresolved "probably sibling" edge remains;
 - the current graph digest can be reproduced twice from the same inputs;
 - the CA-1 source inventory and its bounded batch schedule are not changed.
@@ -89,6 +90,7 @@ Create:
 - workspace.json;
 - workspace.lock.json;
 - qiven-dependencies-v1 schema;
+- sealed WR-0 census declarations for legacy commits that lack .qiven/dependencies.json, bound to exact commit/tree and visibly shadow-only until repository-owned manifests land;
 - standard-library bootstrap that loads the exact locked Devkit;
 - Devkit resolver command that validates the graph and emits a receipt.
 
@@ -96,12 +98,12 @@ The resolver is read-only with respect to product repositories in this stage. Th
 
 **Exit:**
 
-- the current workspace resolves successfully;
+- the current legacy workspace is represented in shadow mode with every census declaration's origin and expiry visible; if current shims, managed copies, and pins select different Devkit implementations or incompatible graph nodes, report the exact split as a typed baseline conflict rather than claiming one successfully resolved current generation. No authoritative graph or cutover claim is allowed before source-owned declarations and a compatible selection land;
 - an intentionally wrong node SHA fails typed;
 - missing or wrong Devkit fails before Operator import;
-- WorkspaceGeneration digest is independent of local absolute paths;
+- for a valid resolved fixture (or the first reconciled real graph), WorkspaceGeneration digest is independent of local absolute paths; invalid legacy input has a diagnostic digest but is never called a validated WorkspaceGeneration;
 - canonicalization golden vectors agree across independent implementations, including duplicate-key and generation-self-hash failures;
-- a clean single-repository/CI invocation has a specified exact workspace-control input and fails visibly if it is absent.
+- a clean single-repository/CI invocation has a specified exact workspace-control input, can obtain exact repository declaration objects or labeled WR-0 census blobs for the full graph and worktrees only for its operation closure, and fails visibly if either required input is absent.
 
 ### WR-2 — Shadow resolution against the existing build
 
@@ -114,12 +116,13 @@ legacy or CA-1 selected repository identity, commit/tree, and source-content dig
 workspace candidate projection's corresponding identity, commit/tree, and digests
 ~~~
 
-A mismatch is a gate failure.
+A mismatch fails the named dependency class's migration gate and remains visible as a typed shadow conflict. It does not invalidate an unrelated legacy operation or the independently accepted CA-1 source lock.
 
 **Exit:**
 
-- all active C++ gates pass under shadow resolution;
-- all legacy pins equal the corresponding selected workspace nodes; if the CA-1 source lock exists, every selected source path/digest is equal in the shadow projection;
+- all active C++ gates pass with the shadow preflight reporting per-class equality or a typed discrepancy; a class cannot cut over until its own equality passes;
+- each dependency class proposed for cutover has exact equality between its legacy selection and workspace candidate selection; a known legacy class not yet migrated (notably Devkit Operator copies/pins) remains an explicit shadow discrepancy with a WR-6 disposition, not a global equivalence claim. If the CA-1 source lock exists, every selected source path/digest is equal in the activation source projection independently of the tool execution projection;
+- no baseline census provision is mistaken for a provider-authored guarantee; all remaining temporary records have a named WR-3..WR-6 replacement and a hard WR-8 removal gate;
 - a synthetic conflict fixture proves resolver conflict detection independently of CMake target order.
 
 ### WR-3 — Foundation graph migration
@@ -128,7 +131,7 @@ Foundation is the first semantic-layer migration because it currently demonstrat
 
 Change Runtime, Context Draft, and Math so that:
 
-- their dependency manifests declare the Foundation requirement, while the exact selected Foundation revision declares a provided contract with provider-owned and consumer integration evidence;
+- their repository-owned dependency manifests declare the Foundation requirement, while the exact selected Foundation revision declares a provided contract with provider-owned and consumer integration evidence; retire their shadow-only census records for these edges before cutover;
 - WorkspaceGeneration selects the exact Foundation revision once;
 - CMake receives the resolved Foundation root;
 - consumer CMakeLists contain no Foundation sibling discovery;
@@ -146,13 +149,13 @@ Resolution must fail before configure even if Runtime would otherwise create qiv
 
 **Exit:**
 
-- no active consumer-local Foundation SHA remains;
-- all affected gates pass in top-level and nested Visual Studio builds, and no unrelated target can spoof qiven::foundation;
+- no active consumer-local Foundation SHA remains and the migrated Foundation edges have no shadow-only census origin;
+- all affected gates pass in top-level and nested Visual Studio builds using the existing Operator gate and approved configure/build/test presets (the preflight supplies the adapter through the configure preset); the current Runtime CI's raw configure entry is migrated for the supported platform before claiming its replacement proof, and no unrelated target can spoof qiven::foundation;
 - moving a compatible Foundation revision no longer requires mechanical consumer re-pin commits.
 
 ### WR-4 — Context Draft migration
 
-Move Runtime -> Context Draft to the same model.
+Move Runtime -> Context Draft to the same model, replacing the corresponding shadow-only census declarations with repository-owned manifests at exact candidate revisions.
 
 Context Draft remains independently versioned. Only location and exact revision selection move to WorkspaceGeneration.
 
@@ -204,16 +207,17 @@ Managed Operator copies are retired only after the bootstrap path works in both 
 
 ### WR-7 — TCA source-selector migration
 
-CA-1 first delivers its already accepted exact external source lock and ActivationGeneration sidecar under ADR-0050. WR-7 then runs a shadow comparison of the complete selected Context/Devkit/Foundation/Runtime closure, including every path filter, commit/tree, and per-file digest. Only an owner-accepted governance amendment and passing equivalence evidence may switch TCA's repository selector to WorkspaceGeneration. The TCA source lock remains independently verifiable and self-contained; RuntimeGeneration remains separate.
+CA-1 first delivers its already accepted exact external source lock and ActivationGeneration sidecar under ADR-0050. WR-7 then runs a shadow comparison of the complete selected Context/Devkit/Foundation/Runtime cognition-source closure, including every path filter, commit/tree, and per-file digest. The tool execution projection is recorded as provenance separately; its digest does not enter the TCA source lock or ActivationGeneration hash. Only an owner-accepted governance amendment and passing equivalence evidence may switch TCA's repository selector to WorkspaceGeneration. The TCA source lock remains independently verifiable and self-contained; RuntimeGeneration remains separate.
 
 **Exit:**
 
-- task evidence names the parent WorkspaceGeneration as provenance, selected workspace projection, complete TCA source lock, execution RuntimeGeneration, and ActivationGeneration;
+- task evidence names the parent WorkspaceGeneration and tool execution projection as provenance, the selected activation source projection and complete TCA source lock as content inputs, execution RuntimeGeneration, and ActivationGeneration;
 - movement of a selected source input changes or invalidates ActivationGeneration, while movement outside the selected closure does not;
 - old-generation rebuild and rollback work from its exact source lock without depending on a mutable current workspace pointer;
 - no TCA code reads a dirty sibling checkout as authoritative source;
 - capability lookup binds to exact selected source revisions and digests;
-- CA-1/CA-2 evidence and the existing bounded-batch stall trigger remain valid.
+- CA-1/CA-2 evidence and the existing bounded-batch stall trigger remain valid;
+- the owner-accepted cutover policy states when a newly accepted Context revision enters the active workspace lock for new tasks, how in-flight receipts retain the old generation, and how lock movement follows existing Context mutation authority without an unapproved owner approval step for routine source changes; measure lock propagation delay and manual interventions before retiring the independent selector.
 
 ### WR-8 — Legacy removal and enforcement
 
@@ -229,9 +233,9 @@ Devkit gates add static checks for forbidden resolver patterns with narrowly doc
 
 **Exit:**
 
-- a new repository cannot accidentally reintroduce the old architecture;
+- a new repository cannot accidentally reintroduce the old architecture, and no shadow-only census declaration remains in any authoritative graph;
 - one governed workspace lock update selects a shared dependency only after selected provider compatibility and affected consumer integration gates pass;
-- active repository gates and TCA acceptance profiles pass.
+- active repository gates and TCA acceptance profiles pass; any non-Windows CI job that is already an authoritative gate either receives a proved platform-specific closure or remains a blocking gap. This migration cannot relabel a required job as optional.
 
 ---
 
@@ -246,7 +250,7 @@ Given the active workspace:
 - no hidden sibling fallback is needed;
 - no governed CMake target appears without a resolved node.
 
-**Pass criterion:** 100% of active governed edges appear in the resolution receipt.
+**Pass criterion:** 100% of active governed edges appear with validation outcomes and declaration origin in a full-graph receipt, and each operation receipt references that exact graph digest while listing its consumed subgraph. A missing declaration object blocks validation even if that node is not materialized by this operation. Any census-derived edge labels the result shadow-only and cannot pass the authoritative profile.
 
 ### Profile B — Conflict detection
 
@@ -321,7 +325,7 @@ After CA-1 exists, compare its accepted source lock against a workspace projecti
 
 - the self-contained TCA source lock lists repository commits/trees, selected path filters, concrete paths, and per-file digests, plus the projection digest after WR-7; parent WorkspaceGeneration appears in a separate provenance envelope;
 - every selected repository revision exactly equals its workspace node after WR-7;
-- an unrelated workspace node movement leaves the selected source-lock digest and ActivationGeneration unchanged;
+- an unrelated workspace node movement, including a Toolchain-only movement used by the activator, leaves the selected source-projection digest, source-lock digest, and ActivationGeneration unchanged when all other accepted activation inputs are held constant; the operation projection may change in the receipt;
 - selected source changes invalidate the correct receipts while RuntimeGeneration remains independent;
 - the old activation generation rebuilds from its exact pinned sources.
 
@@ -335,10 +339,12 @@ Start from:
 
 **Pass criterion:**
 
-- the workspace materializes the exact dependency closure before configure;
-- configure itself remains offline;
+- preflight validates exact declaration objects for the entire lock and materializes only the exact operation dependency closure before configure;
+- configure itself remains offline and uses approved presets with the adapter supplied by the Operator, without ad-hoc -D commands;
 - resulting WorkspaceGeneration equals the declared lock;
-- a missing or ambiguous workspace identity fails without changing the legacy self-contained gate until the replacement is accepted.
+- a missing or ambiguous workspace identity or required declaration object fails without changing the legacy self-contained gate until the replacement is accepted;
+- a dirty or absent worktree outside the projection does not block an otherwise exact operation, while an absent or dirty projected dependency is rejected;
+- the first native build claim is Windows-only until a platform-specific declaration and provider closure passes actual Linux/macOS configure/build/test gates; the presence of those jobs in a workflow does not prove their migration, and any already-required full-CI jobs remain required.
 
 ### Profile J — Cognitive burden reduction
 
@@ -348,6 +354,7 @@ For a sealed cross-repository engineering task measure before and after migratio
 
 - number of files read solely to reconstruct dependency location/version;
 - number of mechanical peer-pin edits;
+- number of workspace lock updates, owner interventions, and elapsed time from an accepted Context source change to eligibility for new task activations;
 - number of distinct resolver implementations;
 - task input tokens spent on dependency-topology explanation;
 - dependency-resolution mistakes found in review.
@@ -355,19 +362,19 @@ For a sealed cross-repository engineering task measure before and after migratio
 **Pass target:**
 
 - normal task cognition receives one bounded workspace graph projection instead of several consumer-specific resolver implementations;
-- no mechanical peer-repin edits are required;
-- Profiles A-I show no correctness regression.
+- no mechanical peer-repin edits are required, and a single lock does not turn routine Context source movement into an unapproved owner-mediated queue;
+- Profiles A-I show no correctness regression on the platform actually claimed.
 
 Broader claims about LLM engineering quality remain governed by the accepted Cognitive Effectiveness Acceptance protocol.
 
 ### Profile K — Contract soundness and transaction recovery
 
-Change a provider's declared surface without changing the consumer's requirement string, and stage a multi-repository update with one new source commit temporarily unavailable.
+Change a provider's declared surface without changing the consumer's requirement string, and stage a multi-repository update with one new source commit temporarily unavailable. Move a shared checkout to a candidate revision while verifying that the old generation remains runnable from its retained old worktree/Devkit and exact lock.
 
 **Pass criterion:**
 
 - missing or incompatible provider provision, absent target, and failing integration gate all deny the update typed before it becomes authoritative;
-- the old generation remains runnable through partial landings and failed lock publication;
+- the old generation actually passes its controlled gate from retained old worktrees and Devkit through partial landings and failed lock publication;
 - a clean unmerged candidate receives a distinct CandidateWorkspaceGeneration and cannot be mistaken for canonical-main acceptance;
 - the new generation is selected only after its entire transitive closure is available and validated.
 
@@ -375,7 +382,7 @@ Change a provider's declared surface without changing the consumer's requirement
 
 ## 4. Machine-Readable Evidence
 
-Each authoritative gate after migration should emit or reference a receipt similar to:
+Each authoritative gate after migration should emit or reference an operation receipt similar to the excerpt below. It references a separately retained full-graph receipt enumerating all edges; for TCA operations, activation_source_projection_digest names only selected cognition-source content and is non-null:
 
 ~~~json
 {
@@ -385,7 +392,9 @@ Each authoritative gate after migration should emit or reference a receipt simil
   "workspace_lock_digest": "sha256:<digest>",
   "workspace_generation": "sha256:<accepted-base-digest>",
   "effective_candidate_generation": null,
+  "graph_receipt_digest": "sha256:<full-graph-evidence-digest>",
   "operation_projection_digest": "sha256:<digest>",
+  "activation_source_projection_digest": null,
   "target_repository": "qiven-runtime",
   "target_revision": "<git-oid>",
   "target_revision_provenance": "canonical-main-or-candidate-ref",
@@ -426,7 +435,7 @@ This prevents dual resolution from becoming permanent architecture.
 
 Rollback is stage-local.
 
-Before WR-8, a failed migration of one dependency class may temporarily return that class to legacy resolution while preserving resolver declarations and shadow evidence.
+Before WR-8, a failed migration of one dependency class may temporarily return that class to legacy resolution while preserving resolver declarations and shadow evidence. Old selected checkouts/worktrees, the matching Devkit/bootstrap, and the old lock are retained through the declared rollback window; if they cannot execute the old controlled gate, the migration has not satisfied its cutover exit.
 
 Rollback MUST NOT:
 
@@ -482,9 +491,9 @@ Workspace Resolution becomes Qiven's normal dependency path only when:
 - normal Devkit execution is generation-bound;
 - the current target-presence validation hole has a permanent regression fixture;
 - TCA uses a qualified WorkspaceGeneration projection as revision selector while publishing its full, self-contained external source lock;
-- clean local and CI bootstrap can materialize the exact closure;
+- clean local and CI bootstrap can validate the complete declaration graph and materialize the exact operation closure without requiring unrelated clean worktrees;
 - no normal-path CMake configure or Python shim performs governed repository discovery;
-- generated adapters are deterministic and rebuildable;
+- generated adapters are deterministic and rebuildable through the approved configure preset;
 - failure diagnostics identify the dependency edge, selected operation projection, and workspace generation;
 - migration evidence shows mechanical pin-ripple work was removed rather than moved into another family of copied files.
 

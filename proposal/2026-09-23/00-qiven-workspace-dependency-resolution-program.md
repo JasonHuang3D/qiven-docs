@@ -18,13 +18,13 @@ Qiven SHALL introduce one explicit **Workspace Resolution** layer with these pro
 
 1. Every participating first-party repository, tool repository, and governed third-party singleton is a node in one machine-readable dependency graph; the workspace-control repository supplies the root and is attested separately.
 2. One immutable **WorkspaceGeneration** selects the exact revision and content identity of every node in a declared workspace snapshot; operation-specific closures are explicit projections of that snapshot.
-3. Dependency constraints are validated before any CMake target, Python module, activation source, or tool implementation is materialized.
+3. Dependency constraints are validated before any governed CMake target, activation source, or general tool implementation is materialized. The minimal bootstrap may load only the exact identity-checked Devkit resolver to perform that validation; it cannot run an Operator task before the graph passes.
 4. Repositories declare semantic dependency edges and compatibility contracts, but do not each carry an independent exact SHA for the same workspace peer.
 5. CMake consumes an already-resolved graph and does not perform repository discovery.
 6. A thin launcher shim MAY remain as a user-interface entry point, but a shim MUST NOT select dependency versions or discover governed implementations.
 7. Devkit, Toolchain, Foundation, Runtime, Context Draft, Math, and qiven-third-party-win resolve through the same workspace closure.
 8. Once qualified, TCA takes repository selection from WorkspaceGeneration while retaining its independently verifiable, complete external-source lock with commit/tree and selected-path content digests. The accepted CA-1 lock remains authoritative until that migration is accepted.
-9. Publication and authoritative gates on migrated paths reject unresolved, conflicting, stale, or dirty dependency closure.
+9. Publication and authoritative gates on migrated paths reject unresolved, conflicting, stale, or dirty consumed dependency closure; new task cognition also checks the accepted active-lock freshness policy before claiming current Context state.
 10. Process singleton rules such as RuntimeHost remain separate from dependency singleton rules.
 
 The immediate goal is not a new package ecosystem. It is to turn a hidden, attention-dependent multi-repository topology into explicit machine state.
@@ -168,11 +168,11 @@ qiven-runtime requires qiven-context-draft frozen semantic contract v4
 qiven-runtime requires sqlite3 package contract profile qiven-v1
 ~~~
 
-This declaration is source-controlled with the repository.
+This declaration is source-controlled with the repository. Existing legacy commits that predate the manifest MAY be described by a sealed, exact-revision-bound WR-0 census record only during WR-1/WR-2 shadow evaluation. Such a record is not a provider-authored contract and cannot authorize a cutover, an authoritative graph receipt, or TCA selector migration; it expires when that node's repository-owned declaration lands.
 
 ### 3.2 Workspace resolution
 
-One resolver validates a selected set of exact repository revisions against every declaration in the workspace snapshot. An explicit lock transaction proposes revision movement; normal build and gate operations only validate the lock. The output is a WorkspaceGeneration. Build, tooling, and cognition each select a closed projection from this one validated universe; unrelated nodes do not automatically invalidate a consumer's derived artifact.
+One resolver validates a selected set of exact repository revisions against every declaration in the workspace snapshot. An explicit lock transaction proposes revision movement; normal build and gate operations validate the complete locked declaration graph from exact Git objects, then materialize and check worktrees only for the operation's closed projection. The output is a WorkspaceGeneration. Build, tooling, and cognition each select a closed projection from this one validated universe; an unrelated node's unavailable or dirty checkout does not invalidate a consumer's operation when its locked declaration metadata is available and the node is outside that projection. Lock updates still require complete candidate-graph validation.
 
 ### 3.3 Materialization
 
@@ -234,7 +234,7 @@ A sibling directory, PATH entry, CMAKE_PREFIX_PATH, Python import path, or envir
 
 ### WG-4 — Dependency validation precedes target existence
 
-Every dependency edge is validated before any target is created. if(TARGET ...) may deduplicate materialization; it cannot waive a constraint.
+Every dependency edge is validated before any CMake target is created or general Operator task runs. The identity-checked resolver bootstrap is the sole pre-validation exception. if(TARGET ...) may deduplicate materialization; it cannot waive a constraint.
 
 ### WG-5 — Thin shims are allowed; resolver shims are not
 
@@ -244,11 +244,11 @@ A launcher that searches for Devkit, selects a checkout, interprets a pin, or fa
 
 ### WG-6 — Dirty state is never authoritative dependency truth
 
-Development overlays may point at dirty worktrees for local iteration, but authoritative gates and publication require clean exact commits or a separately sealed candidate-tree identity.
+Development overlays may point at dirty worktrees for local iteration, but authoritative gates and publication require clean exact commits or a separately sealed candidate-tree identity for every node they actually consume, including the target repository. An unrelated unmaterialized worktree does not make an operation dirty.
 
 ### WG-7 — One graph feeds engineering and cognition after a qualified migration
 
-ADR-0050's CA-1 source lock is a current accepted obligation and SHALL proceed on its bounded schedule. Before replacing its revision selection, a workspace adapter MUST reproduce the complete selected repository set and every commit/tree, path filter, and per-file digest in shadow mode. Once accepted, TCA SHALL select those repository revisions from WorkspaceGeneration, then produce a self-contained external-source lock with the inherited commit/tree and selected-path digests. It MUST NOT choose a conflicting revision, weaken digest checks, or read a dirty checkout. Only changes to inputs of that selected source closure (or other accepted activation inputs) invalidate ActivationGeneration; a movement of an unrelated workspace node does not.
+ADR-0050's CA-1 source lock is a current accepted obligation and SHALL proceed on its bounded schedule. Before replacing its revision selection, a workspace adapter MUST reproduce the complete selected repository set and every commit/tree, path filter, and per-file digest in shadow mode. Once accepted, TCA SHALL select those repository revisions from WorkspaceGeneration, then produce a self-contained external-source lock with the inherited commit/tree and selected-path digests. It MUST NOT choose a conflicting revision, weaken digest checks, or read a dirty checkout. Only changes to inputs of that selected source closure (or other accepted activation inputs) invalidate ActivationGeneration; a movement of an unrelated workspace node does not. A build/tool execution projection digest is receipt provenance, not an input to the TCA source-lock or ActivationGeneration hash; the source projection digest is computed solely from selected cognition-source inputs.
 
 ### WG-8 — Capability discovery is generation-bound
 
@@ -360,6 +360,7 @@ This program is complete only when:
 7. Runtime, Draft, Math, Foundation, Devkit, Toolchain, and the third-party singleton pass migration acceptance;
 8. after a separate, evidenced migration, TCA selects the same relevant repository revisions while preserving its full source lock and separate ActivationGeneration;
 9. authoritative gates bind receipts to the workspace generation;
-10. the legacy shim-plus-pin path is deleted or retained only as an explicitly time-bounded compatibility path.
+10. the legacy shim-plus-pin path is deleted or retained only as an explicitly time-bounded compatibility path;
+11. staged lock updates retain an executable old-generation materialization and exact rollback inputs until cutover evidence closes.
 
 The end state is not fewer rules. It is that topology and dependency identity become mechanical facts, leaving human and LLM attention for semantics that cannot be mechanized.
