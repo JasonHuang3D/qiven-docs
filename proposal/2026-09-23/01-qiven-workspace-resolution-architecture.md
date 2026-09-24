@@ -229,7 +229,7 @@ The architecture rejects shim-plus-pin as dependency resolution; it does not rej
 
 ### 2.3 Standalone and trust bootstrap
 
-A clean single-repository clone cannot derive a unique authoritative workspace lock without an additional trusted input. CI or an operator supplies an exact workspace-control revision/lock and permitted source acquisition; local launchers may find a unique nearby marker, then validate its identity and report it. The operator- or CI-supplied exact workspace-control revision is the trust root of the whole chain: the bootstrap and the launchers validate identity downward from it and never derive trust upward from ambient state. Preflight may acquire declaration Git objects for the complete locked graph and full worktrees only for the selected operation closure; configure itself remains offline. Ambiguous, missing, or changed workspace identity fails visibly. The bootstrap never treats an arbitrary sibling checkout or environment value as a revision decision. ADR-0046's self-contained gate path remains in force for repositories until this exact standalone/CI proof passes; no managed snapshot is deleted merely because a new launcher exists. Control-repo branch state and product-repo candidate branches are reported separately, and neither changes qiven-context's canonical Git authority.
+A clean single-repository clone cannot derive a unique authoritative workspace lock without an additional trusted input. The trust root is an owner-accepted policy outside the candidate workspace lock that names the allowed control repository and the authorized way to advance its exact revision; an exact SHA by itself authenticates no publisher. CI or an operator supplies a control revision/lock and permitted source acquisition, but authoritative bootstrap first checks that revision against the trusted policy. A nearby marker or environment value can locate a candidate only; it never grants authority. An unadmitted but exact control revision may be inspected in explicitly labeled shadow/local mode, never used for publication or an authoritative gate. If the trust policy or admitted revision is unavailable, authoritative bootstrap fails. Preflight may acquire declaration Git objects for the complete locked graph and full worktrees only for the selected operation closure; configure itself remains offline. Ambiguous, missing, or changed workspace identity fails visibly. ADR-0046's self-contained gate path remains in force for repositories until this exact standalone/CI proof passes; no managed snapshot is deleted merely because a new launcher exists. Control-repo branch state and product-repo candidate branches are reported separately, and neither changes qiven-context's canonical Git authority.
 
 ---
 
@@ -526,6 +526,7 @@ At minimum:
 | Failure | Meaning |
 |---|---|
 | WorkspaceNotFound | no explicit workspace root or marker |
+| UntrustedControlRevision | control repository/revision lacks authorization under the independent trust policy |
 | UnknownNode | dependency references undeclared repository |
 | MissingDeclaration | required dependency metadata absent |
 | DependencyConflict | incoming contracts cannot share one resolved node |

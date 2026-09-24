@@ -113,11 +113,11 @@ cognition source resolver   -> TCA external source lock
 
 That would preserve the same class of attention and consistency failure that TCA is intended to reduce.
 
-### 1.6 Owner-run entrypoints can resolve differently than verification runs (2026-09-24 incident)
+### 1.6 A separate entrypoint-path hazard surfaced during H1 preparation
 
-The same defect class exists outside CMake and outside SHA pins. On 2026-09-24 the MVP-4 H1 pre-flight (`preflight.cmd` of kit `0.1.0-g6ebf6ff6`) failed in the owner's hands at its host-boot step: `qiven-runtime-host.exe` derives its default profile from the process working directory (`current_path()/config/profiles/zcode-jason-context-record-mvp.yaml`), and the `--root` flag re-points the governed root without re-pointing the profile. The session-side verification of the same kit ran with a working directory in which that profile file exists and passed; the double-clicked owner-run wrapper ran with the kit folder as the working directory, and the packaged kit never carried `config/profiles/`, so the host exited during boot. Two ambient facts — invocation working directory and package self-containment — silently differed between the verifying environment and the owner-live environment, and only the owner observed the failure.
+The PR discussion reports that the owner-run preflight of MVP-4 H1 kit `0.1.0-g6ebf6ff6` failed while a session-run check passed. The current qiven-runtime main independently confirms the mechanism: `apps/runtime_host_main.cpp` derives its default profile from `current_path()` before processing `--root`; `tools/h1_kit.py` launches the preflight host without `cwd` or `--profile`, while its generated `run-host.cmd` changes to the Runtime checkout. The kit generator copies binaries and hook configuration, but no `config/profiles/` directory. The owner-run failure and its precise output remain attributed PR discussion until a sealed H1 log or canonical incident record binds them to an exact kit; the current source proves the environmental mismatch, not the outcome of that owner run.
 
-This is "no ambient success" (WG-3) in executable form: an entrypoint whose resolution depends on where it is invoked from is a distributed resolver even when no SHA literal is visible. The migration census must therefore cover owner-run entrypoints (H1 kit wrappers, launchers, hook command anchors), not only CMake and Python discovery paths.
+This is an entrypoint working-directory and H1-package self-containment defect governed by ADR-0049, not by itself evidence that a multi-repository dependency resolver selected the wrong revision. WR-0 should inventory only entrypoints that locate or select governed repository/tool dependencies. A WR launcher change must preserve the affected H1 kit and hook-router contracts, but repairing the reported MVP-4 kit remains in its existing corrective lane; the report adds no CA-1 or WR dependency gate.
 
 ---
 
@@ -236,7 +236,7 @@ Exact workspace revision selection is recorded once in WorkspaceGeneration, not 
 
 ### WG-3 — No ambient success
 
-A sibling directory, PATH entry, CMAKE_PREFIX_PATH, Python import path, or environment variable cannot silently satisfy a governed dependency. Overrides are explicit development inputs and appear in the resolution receipt.
+A sibling directory, PATH entry, CMAKE_PREFIX_PATH, Python import path, or environment variable cannot silently satisfy a governed dependency. Overrides are explicit development inputs and appear in the resolution receipt. An exact Git object ID proves identity, not authorization: authoritative bootstrap checks that the control revision is admitted by an independently governed trust policy.
 
 ### WG-4 — Dependency validation precedes target existence
 
