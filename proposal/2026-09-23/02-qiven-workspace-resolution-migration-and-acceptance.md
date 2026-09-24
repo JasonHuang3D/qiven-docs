@@ -369,13 +369,13 @@ Broader claims about LLM engineering quality remain governed by the accepted Cog
 
 ### Profile K — Contract soundness and transaction recovery
 
-Change a provider's declared surface without changing the consumer's requirement string, and stage a multi-repository update with one new source commit temporarily unavailable. Move a shared checkout to a candidate revision while verifying that the old generation remains runnable from its retained old worktree/Devkit and exact lock.
+Change a provider's declared surface without changing the consumer's requirement string; then change a clean candidate's dependency manifest to add a required provider absent from the base lock and prove the candidate fails full-graph validation even while the base graph still passes. Stage a multi-repository update with one new source commit temporarily unavailable. Move a shared checkout to a candidate revision while verifying that the old generation remains runnable from its retained old worktree/Devkit and exact lock.
 
 **Pass criterion:**
 
 - missing or incompatible provider provision, absent target, and failing integration gate all deny the update typed before it becomes authoritative;
 - the old generation actually passes its controlled gate from retained old worktrees and Devkit through partial landings and failed lock publication;
-- a clean unmerged candidate receives a distinct CandidateWorkspaceGeneration and cannot be mistaken for canonical-main acceptance;
+- a clean unmerged candidate receives a distinct CandidateWorkspaceGeneration only after its own declaration and all effective incoming/new edges are validated; it cannot reuse the base graph receipt or be mistaken for canonical-main acceptance;
 - the new generation is selected only after its entire transitive closure is available and validated.
 
 ---
@@ -392,7 +392,7 @@ Each authoritative gate after migration should emit or reference an operation re
   "workspace_lock_digest": "sha256:<digest>",
   "workspace_generation": "sha256:<accepted-base-digest>",
   "effective_candidate_generation": null,
-  "graph_receipt_digest": "sha256:<full-graph-evidence-digest>",
+  "graph_receipt_digest": "sha256:<effective-full-graph-evidence-digest>",
   "operation_projection_digest": "sha256:<digest>",
   "activation_source_projection_digest": null,
   "target_repository": "qiven-runtime",

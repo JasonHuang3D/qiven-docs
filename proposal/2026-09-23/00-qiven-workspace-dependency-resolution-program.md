@@ -172,7 +172,7 @@ This declaration is source-controlled with the repository. Existing legacy commi
 
 ### 3.2 Workspace resolution
 
-One resolver validates a selected set of exact repository revisions against every declaration in the workspace snapshot. An explicit lock transaction proposes revision movement; normal build and gate operations validate the complete locked declaration graph from exact Git objects, then materialize and check worktrees only for the operation's closed projection. The output is a WorkspaceGeneration. Build, tooling, and cognition each select a closed projection from this one validated universe; an unrelated node's unavailable or dirty checkout does not invalidate a consumer's operation when its locked declaration metadata is available and the node is outside that projection. Lock updates still require complete candidate-graph validation.
+One resolver validates a selected set of exact repository revisions against every declaration in the workspace snapshot. An explicit lock transaction proposes revision movement; normal build and gate operations validate the complete effective declaration graph from exact Git objects (the base lock plus any explicit clean candidate overlay), then materialize and check worktrees only for the operation's closed projection. A candidate overlay must revalidate changed and incoming edges from its own revision, never reuse the base graph proof. The output is a WorkspaceGeneration. Build, tooling, and cognition each select a closed projection from this one validated universe; an unrelated node's unavailable or dirty checkout does not invalidate a consumer's operation when its locked declaration metadata is available and the node is outside that projection. Lock updates still require complete candidate-graph validation.
 
 ### 3.3 Materialization
 
@@ -258,7 +258,7 @@ A capability surface, public header, architecture reference, or tool contract is
 
 ### WG-9 — Graph conflicts fail visibly
 
-Conflicting compatibility requirements, missing nodes, revision mismatch, platform mismatch, duplicate semantic slots, and stale generated material are typed failures.
+Conflicting compatibility requirements, missing nodes, revision mismatch, platform mismatch, duplicate semantic slots, stale generated material, and candidate declarations that introduce unresolved edges are typed failures.
 
 ### WG-10 — Cross-repository publication names the generation
 
