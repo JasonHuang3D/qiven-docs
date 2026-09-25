@@ -4,11 +4,11 @@
 
 ## 1. Qualification unit and evidence packet
 
-A passing unit is one exact combination of **ZCode source/build, installed entrypoint, Qiven Runtime build and activation generation, provider/profile, actor and role set, model-call class, tool capability set, and task-ingress path**. Qualification is invalidated for affected rows by an upstream ref change, a different installed asset, an unexamined alternate path, a role/subagent topology change, or a changed canonical policy/generation. Record these as a `DeploymentProfile` and per-operation coverage matrix per ADR-0038. A single demonstrated prompt path cannot be generalized to every invocation or tool path.
+A passing unit is one exact combination of **ZCode source/build, installed entrypoint, Qiven Runtime build and activation generation, provider/profile, actor and role set, model-call class, tool capability set, and task-ingress path**. The first unit is the owner's **packaged Windows Desktop local Agent**. Qualification is invalidated for affected rows by an upstream ref change, a different installed asset, an unexamined alternate path, a role/subagent topology change, or a changed canonical policy/generation. Record these as a `DeploymentProfile` and per-operation coverage matrix per ADR-0038. A CLI-only demonstration or a single Desktop prompt path cannot be generalized to every invocation or tool path.
 
 The trial packet contains:
 
-- pinned ZCode upstream and patch commits, lockfile/tool versions, built artifact SHA-256, **observed loaded artifact**, Runtime and Devkit revisions, source lock, activation policy and renderer build;
+- pinned ZCode upstream and patch commits, lockfile/tool versions, target Windows architecture, built CLI-Agent/staged/unpacked/installed Desktop artifact SHA-256, **observed loaded Agent artifact and Electron Host command**, Runtime and Devkit revisions, source lock, activation policy and renderer build;
 - observed task envelope and provenance of each field; task/phase/role/invocation/attempt IDs, bundle and receipt digests, final projected message digest, provider-facing wire capture where permitted, monotonically ordered delivery/send/first output events, and terminal result;
 - authenticated Runtime prepare/verify/decision events, explicit Host allow/deny, startup status, negative-trial receipts and a complete call-site/tool-site inventory including exclusions and alternate entrypoints;
 - a separate design-evidence record binding design digest to the *earlier* receipt and later independently captured falsification, with no backdating;
@@ -27,7 +27,8 @@ Before altering tool behavior, inventory the exact call graph, preferably with a
 | Auxiliary model work | How do compaction, summarization, goal checks and reviewers call models? | Traces or declared exclusion, with impact on claim |
 | Delegated subagents | Which sessions/processes load the adapter and what brief/role do they carry? | Worker and brother traces, no worker full boot requirement |
 | Tool dispatcher | Which Bash, Write/Edit, MCP, network, background and permission paths can cause external effects? | Actual pre-effect interception, deny before execution |
-| Distribution entrypoints | Do CLI, Web, TUI and Desktop load the pinned `zcode.cjs` or another Agent asset? | Running-process path and digest, startup attestation |
+| Windows Desktop local entry | Does Electron Host actually launch the packaged `resources/glm/zcode.cjs` in Node mode with `app-server --stdio`? Does a command override/dev tree/bytecode mode take precedence? | Process ancestry, effective command/args, loaded path and hash, package/build identity |
+| Other entrypoints | Does CLI, TUI, Web or SSH/WSL use a different process or native Agent? | Declare separately qualified profile or explicit exclusion; never import a CLI pass into Desktop |
 | Escape paths | Can an unpatched `PATH` command, extension, direct SDK call, child process, or owner-manual path act outside the profile? | Denial, isolation or explicitly narrower claim |
 
 Zero `unresolved` rows is required for the profile's asserted governed classes. Excluded paths remain plainly outside the claim; a path capable of the same in-scope act under the declared actor set cannot be hand-waved away as excluded. Source inventory must reconcile the official CLI README's `PreToolUse` replacement wording with ADR-0051's live finding about deployed hook behavior, by a pinned-version executable probe. The result may inform hook usage but cannot replace the model-boundary inventory.
@@ -51,6 +52,8 @@ Zero `unresolved` rows is required for the profile's asserted governed classes. 
 | Tool unknown result | Lose terminal acknowledgement after dispatch | Outcome marked indeterminate, reconciled before retry; no blind replay |
 | Background/custody | Guarded long build with `run_in_background` and TaskStop | One completion notification, no model polling, entire task tree terminated; node-reuse guard unchanged |
 | Wrong binary | Keep patched source but launch old installed asset or alternate Desktop Agent | Startup `UnqualifiedAdapter` and coverage failure, never inferred patched status |
+| Packaging drift | Change source while leaving an old `bundled-agents/win32-<arch>/glm/zcode.cjs`, or install an old package with a new CLI on `PATH` | Hash mismatch or loaded-build failure before any compliant Desktop trial |
+| Command override or remote path | Set `ZCODE_AGENT_SERVER_COMMAND`, enable bytecode mode, or run SSH/WSL Agent | Exact effective path observed; no Windows-local claim when another binary or deployment is used |
 
 Use an independent replay harness for the deliberately withheld/altered/late request body, and one owner-authorized real model task for the affirmative boundary claim. A mock provider/wire capture proves projection and ordering up to the transport; a live trial establishes the supported ingress in an actual model session. Neither proves subjective comprehension. Tests must compare actual bytes or a specified lossless provider projection, not a model's self-reported memory of the receipt.
 
@@ -60,11 +63,11 @@ The CA-1 deterministic corpus still runs its own Profiles A and B (including 100
 
 | Stage | Prerequisite | Deliverable and exit | Authority |
 | --- | --- | --- | --- |
-| H-0: census and contract | Accepted ADRs/CA-0 evidence, pinned ZCode source | Complete model/tool/entrypoint inventory, protocol and delivery placement design, bounded effort estimate | Documentation/research only |
-| H-1: shadow adapter | H-0 review; isolated build | Read-only traces for each listed invocation and tool class, telemetry safe by default, measured overhead; no before-design compliance claim | Explicit observational profile |
-| H-2: gated model path | CA-1 core exists and its accepted prerequisites pass | Generate/stream preflight and per-attempt authorization; mock-wire and fault tests; correct installed binary | Candidate, isolated test profile |
+| H-0: Windows Desktop census and contract | Accepted ADRs/CA-0 evidence, pinned ZCode source | Installed main/Host/Agent path, staged/packaged source chain, override precedence, model/tool inventory, protocol and bounded estimate | Documentation/research only |
+| H-1: shadow Desktop adapter | H-0 review; isolated Windows build | Packaged Windows Desktop launches the pinned Agent; read-only traces for listed invocation/tool classes, telemetry safe by default, measured overhead; no before-design compliance claim | Explicit observational profile |
+| H-2: gated Desktop model path | CA-1 core exists and its accepted prerequisites pass | Generate/stream preflight and per-attempt authorization; mock-wire and fault tests; installed Windows Desktop artifact and Host/Agent trace | Candidate, isolated test profile |
 | H-3: gated actions | Verified dispatch seam and Host/Qiven permissions | Tool deny/allow and outcome evidence, ADR-0051 background/custody parity | Candidate, scoped operations only |
-| H-4: CA-2 live qualification | H-2/H-3 for declared profile, Devkit evidence binding | One real controlled R2/R3 before-design trial, withheld/altered/late failures, coverage packet and independent review | Owner-approved gate acceptance required |
+| H-4: CA-2 live Windows Desktop qualification | H-2/H-3 for declared profile, Devkit evidence binding | One real controlled R2/R3 task **in the packaged Windows Desktop app**, withheld/altered/late failures, loaded-binary/coverage packet and independent review | Owner-approved gate acceptance required |
 | H-5: dogfood and utility | CA-2 passed; MVP-5 resumed per ADR-0050 | CA-3/CA-4 recurrence/cost and CA-5 paired trials, both MVP-7 gates | Existing governance |
 
 This is **not** a request to move CA-1 behind a fork. CA-1 remains native Runtime selection with its at-most-three-runtime-PR, one-context-policy-PR, one-devkit-schema-PR declared batch, Profile A/B exit and stall rule. Real MVP-4 H1 and RR-0 remain its accepted prerequisites. H-0/H-1 can research in parallel without declaring CA-1 complete. H-2 depends on a usable CA-1 service. MVP-5 stays frozen until CA-2 as presently required.

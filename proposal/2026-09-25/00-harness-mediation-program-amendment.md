@@ -1,7 +1,7 @@
 # Qiven Harness Mediation: Proposed Amendment to the TCA Delivery Program
 
 > Status: PROPOSED for cross-LLM and owner review, 2026-09-25 UTC. No acceptance, implementation, CA-2 qualification, or MVP-5 authorization is claimed.
-> Scope: a ZCode source adapter as the first qualified carrier for Qiven cognition and action mediation. The portable Qiven policy core remains harness independent.
+> Scope: the owner's **Windows ZCode Desktop local session** is the first proposed qualified deployment profile for a ZCode source adapter. The portable Qiven policy core remains harness independent. CLI/TUI/Web and SSH/WSL/remote agents are separate coverage profiles, not substitutes for the Desktop trial.
 > Companion documents: [architecture](01-harness-boundary-architecture.md), [ZCode implementation](02-zcode-source-implementation.md), [acceptance and migration](03-acceptance-and-migration.md), and [decision provenance](04-decision-provenance.md).
 
 ## 1. Decision requested
@@ -52,7 +52,7 @@ If accepted, canonical ADR and program changes belong in `qiven-context` and `qi
 
 ## 4. Conditions for using the stronger route
 
-The first implementation should extend ZCode's adapter and tool dispatch, not rewrite the whole agent loop. A deeper harness rewrite is justified only if the call-site inventory or controlled trials show a required class bypasses those seams. The architectural sufficiency condition is **control at all relevant physical boundaries plus enforceable coverage**, regardless of whether those boundaries are exposed by hooks, a patch, a fork, or a wholly custom harness. Forking by itself is no guarantee: an overlooked provider call or an unpatched installed binary reproduces the original gap.
+The first implementation should extend ZCode's adapter and tool dispatch, not rewrite the whole agent loop. A deeper harness rewrite is justified only if the call-site inventory or controlled trials show a required class bypasses those seams. The architectural sufficiency condition is **control at all relevant physical boundaries plus enforceable coverage**, regardless of whether those boundaries are exposed by hooks, a patch, a fork, or a wholly custom harness. Forking by itself is no guarantee: an overlooked provider call or an unpatched installed Windows Desktop Agent reproduces the original gap. The inspected ZCode packaging chain stages the CLI-built `zcode.cjs` into the Desktop application's `resources/glm/zcode.cjs`; building only a standalone CLI distribution does not change the running Desktop application.
 
 No architectural claim requires Qiven to monopolize the entire executor. The claim is limited to its declared governed actors and operations. In particular, a direct owner action excluded from a deployment profile stays governed by the collaboration contract, and may not be represented as mediated by this adapter.
 
