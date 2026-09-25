@@ -16,16 +16,16 @@ At inspected upstream ZCode commit [`29628c9`](https://github.com/zai-org/ZCode/
 | [`runner-runtime-headers.ts`](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/adapters/src/model/runner-runtime-headers.ts) | Auth refresh can occur on every attempt | Keep auth resolution in ZCode and omit credentials from Qiven IPC |
 | [`runner-runtime.ts`](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/adapters/src/model/runner-runtime.ts) | AI SDK runtime methods have different return contracts (`generateText` promise; `streamText` immediate result) | Put awaited authorization in the runner before calling either method; do not make runtime's streaming method async |
 
-These are confirmed **model-adapter** paths, not yet a proof that every model invocation or tool action uses this adapter. No verified tool-dispatch source location is claimed here. Finding and qualifying it is an implementation entry gate.
+These are confirmed **model-adapter** paths, not yet a proof that every model invocation or tool action uses this adapter. No verified tool-dispatch source location is claimed here. Finding and qualifying it is an implementation entry gate. The intended `BeforeModelInvocation` call is mandatory for every logical invocation in the qualified Desktop Agent, even when Qiven revalidates an existing bundle or admits a narrowly named observed-only class. The per-attempt guard remains separate; neither a first-task-only hook nor a locally cached receipt may stand in for later logical calls.
 
 ## 2. Repository changes by responsibility
 
 | Repository | Candidate delta | Guardrail |
 | --- | --- | --- |
 | `qiven-context` | Owner-accepted ADR/program amendment after deliberation; if admitted, update control policy/coverage inventory and obligation | Do not edit an accepted ADR's historical decision or mark this proposal accepted by a docs PR |
-| `qiven-runtime` | Native, authenticated local adapter-facing prepare/verify/decide operations over CA-1 core; durable receipt and evidence events | Deterministic selection; no model/embedding/network dependency for protected selection; canonical truth unchanged |
+| `qiven-runtime` | Native `BeforeModelInvocation`/attempt-decision operations over CA-1 core, a capability-scoped connector identity and durable events | Existing Host IPC is not a drop-in Agent privilege: server-side per-client verb checks must reject owner `Shutdown`/`Mutation` from this identity; no broad owner secret in Desktop JS |
 | `qiven-devkit` | Connector contract conformance, generation/coverage verification, task/role schema mapping, independent negative trials and publication gate bindings | Never treat a bundle issuance as proof of delivery or a tool status as proof of control |
-| ZCode source fork | Small adapter module, logical invocation hook, physical attempt guard at both runner call sites, actual tool dispatch guard, build ID and observation writer | Preserve provider binding, option validation, auth, cancellation, telemetry, background execution and release packaging |
+| ZCode source overlay | Small version-checked patch set: all-logical-invocation adapter call, physical attempt guard at both runner call sites, actual tool dispatch guard, build ID and observation writer | Rebase reproducibly on the pinned upstream; preserve provider binding, option validation, auth, cancellation, telemetry, background execution and release packaging |
 | `qiven-docs` | This proposal and signed cross-LLM/owner deliberation | Merge and accepted migration only under owner acceptance |
 
 ### 2.1 Proposed local TypeScript contract
@@ -50,20 +50,26 @@ type PreparedInvocation = Readonly<{
   expiresAt?: string;
 }>;
 
+type ModelInvocationDecision =
+  | { kind: "governed"; prepared: PreparedInvocation; renderedSegment?: string }
+  | { kind: "observed-only"; key: InvocationKey; policyId: string; scopeDigest: string }
+  | { kind: "deny"; key: InvocationKey; reason: string };
+
 interface QivenMediationPort {
-  prepare(input: {
+  beforeModelInvocation(input: {
     invocation: InvocationKey;
     task: ObservedAndClaimedTask;
+    callClass: ModelCallClass;
     providerId: string;
     modelId: string;
     projectedRequest: PublicRequestProjection;
     abortSignal?: AbortSignal;
-  }): Promise<{ prepared: PreparedInvocation; renderedSegment: string }>;
+  }): Promise<ModelInvocationDecision>;
   authorizeAttempt(input: {
-    prepared: PreparedInvocation;
+    decision: Exclude<ModelInvocationDecision, { kind: "deny" }>;
     attempt: number;
-    projectedMessages: unknown;
-    projectedTools: unknown;
+    finalProjectionDigest: string;
+    insertedSegmentProof?: SegmentProof;
     modelIdentity: { providerId: string; modelId: string };
     abortSignal?: AbortSignal;
   }): Promise<AttemptPermit>;
@@ -72,59 +78,72 @@ interface QivenMediationPort {
 }
 ```
 
-`PublicRequestProjection` excludes `accountAccess`, headers, bearer tokens, auth callbacks and sensitive debug bodies. The adapter's IPC should be versioned, authenticated and bounded; the Host/Runtime already has an owner-only IPC surface under MVP-3. Exact C++ operation names and transport schema must be reconciled against CA-1 implementation before coding; no invented `qiven cognition` subcommand is represented as currently shipped.
+`PublicRequestProjection` excludes `accountAccess`, headers, bearer tokens, auth callbacks and sensitive debug bodies. The adapter compares actual projected segment bytes locally and sends bounded proofs/digests; full prompts are captured only in the separately controlled trial channel. The connector must be versioned, authenticated and bounded. Current Runtime Host IPC has an owner-only DACL and installed-image allowlist with a same-user DPAPI/HMAC secret, but no caller-specific verb authorization; any authenticated client can request `Shutdown`. Do not add the Electron Agent to that broad client set or expose its reusable owner secret to JS. Introduce a narrow native connector or separate endpoint and enforce per-client/per-operation rights at the Host, with negative `Shutdown` and `Mutation` probes. The existing one-shot `qiven-adapter-bridge` is hook-mapping state tooling, not this Host RPC. Per-verb checks prevent a broad Agent credential but cannot isolate hostile code already running as the same Windows user with access to the DPAPI secret or allowed owner executables. Record that trust limit; stronger hostile-process claims require OS identity isolation and separate credentials. Exact C++ operation names and transport schema must be reconciled against CA-1 implementation before coding; no invented `qiven cognition` subcommand is represented as currently shipped.
 
 ### 2.2 Logical seam in `runner.ts`
 
-The user's sketch is directionally correct for this seam. The following shape handles both executor return types and avoids passing sensitive `resolved` to Qiven:
+The user's sketch is directionally correct for this seam. The following shape handles both executor return types and avoids passing sensitive `resolved` to Qiven. `beforeModelInvocation` runs on **every** logical call, including a later call that reuses a bundle; a denial cannot enter either runner:
 
 ```ts
 executor: {
   generateText: async (request) => {
     const legacy = toLegacyRequest(request);
-    const { mediated, prepared } = await qiven.prepareModelInvocation({
-      legacy,
-      boundModel: { providerId: resolved.providerId, modelId: resolved.modelId },
-      invocation: captureHarnessInvocation(),
+    const invocation = captureHarnessInvocation();
+    const decision = await qiven.beforeModelInvocation({
+      invocation,
+      task: observeTaskEnvelope(invocation),
+      callClass: classifyModelCall(invocation),
+      providerId: resolved.providerId,
+      modelId: resolved.modelId,
+      projectedRequest: projectPublicRequest(legacy),
       abortSignal: request.abortSignal,
     });
-    // prepareModelInvocation may insert one typed Qiven message segment.
-    // It cannot change request.options, bound model, tool schema or auth closure.
+    if (decision.kind === "deny") throw new QivenMediationError(decision.reason);
+    const mediated = applyQualifiedDecision(legacy, decision);
+    // Only a typed message addition is allowed; model/options/tools/auth are unchanged.
     return this.generateTextWithResolved(
-      mediated, resolved, resolveForRequest(mediated, request.options), prepared,
+      mediated, resolved, resolveForRequest(mediated, request.options), decision,
     );
   },
   streamText: (request) => {
     const legacy = toLegacyRequest(request);
+    const invocation = captureHarnessInvocation(); // captured before lazy iteration
+    const task = observeTaskEnvelope(invocation);
+    const callClass = classifyModelCall(invocation);
     return (async function* () {
-      const { mediated, prepared } = await qiven.prepareModelInvocation({
-        legacy,
-        boundModel: { providerId: resolved.providerId, modelId: resolved.modelId },
-        invocation: captureHarnessInvocation(),
+      const decision = await qiven.beforeModelInvocation({
+        invocation,
+        task,
+        callClass,
+        providerId: resolved.providerId,
+        modelId: resolved.modelId,
+        projectedRequest: projectPublicRequest(legacy),
         abortSignal: request.abortSignal,
       });
+      if (decision.kind === "deny") throw new QivenMediationError(decision.reason);
+      const mediated = applyQualifiedDecision(legacy, decision);
       yield* runPreparedStream(
-        mediated, resolved, resolveForRequest(mediated, request.options), prepared,
+        mediated, resolved, resolveForRequest(mediated, request.options), decision,
       );
     })();
   },
 }
 ```
 
-In real code, preserve `this` by using a bound/local `runPreparedStream`, and use the repo's concrete message types. A lazily iterated stream captures its invocation/role context at call time, **before** the caller consumes it; the generator revalidates phase and source freshness at execution time. Inject the segment through a typed helper with explicit priority/ordering and idempotence; a new `messages` array is derived without mutating the canonical conversation history. The returned object passes request validation rules; model options are bound from the original `request.options`. If `prepare` changes anything other than an allowed message addition, reject it with a typed protocol error.
+In real code, preserve `this` by using a bound/local `runPreparedStream`, and use the repo's concrete message types. A lazily iterated stream captures its invocation/role context at call time, **before** the caller consumes it; the generator revalidates phase and source freshness at execution time. `applyQualifiedDecision` inserts a segment through a typed helper with explicit priority/ordering and idempotence, or accepts an observed-only class only under a named policy proving that call cannot influence governed design/action state. A new `messages` array is derived without mutating canonical conversation history. The returned object passes request validation rules; model options are bound from the original `request.options`. If mediation changes anything other than an allowed message addition, reject it with a typed protocol error. The `callClass` is derived from trusted harness context and remains a claim until independently censused; a model-supplied label cannot create an exemption.
 
 ### 2.3 Physical attempt seam in both runners
 
-Pass `prepared` to `runGenerateText` and `runStreamText` (or an equivalent context object). After `createGenerateTextOptions` / `createStreamTextOptions`, and before `input.runtime.generateText(options)` / `.streamText(options)`, do the following for **every attempt**:
+Pass the per-call `decision` to `runGenerateText` and `runStreamText` (or an equivalent context object). After `createGenerateTextOptions` / `createStreamTextOptions`, and before `input.runtime.generateText(options)` / `.streamText(options)`, do the following for **every attempt**:
 
 ```ts
+const proof = verifyLocalSegmentAndHash(options.messages, options.tools, decision);
 const permit = await qiven.authorizePhysicalAttempt({
-  prepared,
+  decision,
   attempt,
-  providerId: resolved.providerId,
-  modelId: resolved.modelId,
-  projectedMessages: options.messages,
-  projectedTools: options.tools,
+  modelIdentity: { providerId: resolved.providerId, modelId: resolved.modelId },
+  finalProjectionDigest: proof.digest,
+  insertedSegmentProof: proof.segment,
   abortSignal: attemptRequest.abortSignal,
 });
 if (!permit.matchesFinalProjection) throw new QivenMediationError("DeliveryMismatch");
@@ -135,7 +154,7 @@ if (!permit.matchesFinalProjection) throw new QivenMediationError("DeliveryMisma
 
 `model_request_started` currently appears after options construction and before send. Make its semantics precise: authorization is not network acceptance; emit a separate authorized/placement event or move the started record after successful runtime call setup and preserve the existing accounting contract. Even successful runtime call setup is not independently proved provider acceptance: a separately qualified transport observation or real captured trial is needed before issuing `InvocationDeliveryEvent`. Route a Qiven pre-dispatch failure to a **nonretryable local failure class** that cannot be mistaken for provider throttling, stream idle timeouts, or a retryable auth error. Do not let existing generic catch/retry paths silently make an unauthorized next attempt. Keep request ID fresh for a new physical attempt; refresh auth once per existing ZCode rules. Signature-repair retry may legitimately alter earlier reasoning messages, so compare the registered injected segment in the final projection rather than requiring the whole request byte hash to equal the initial logical request. Record the whole final projection digest for correlation.
 
-`projectRequestHistory` occurs in `*WithResolved` before the runners; `toAiSdkMessages` in `runner-options.ts` can change the provider-facing shape. The guard therefore verifies **presence, position and equality of the injected segment after both transformations**, not merely the preflight output. A model provider or AI SDK may further serialize messages; capture a mock HTTP body and at least one live model-visible task trial for the qualified profile. If final serialization changes the segment, move the check to the actual send point and requalify; do not issue a false delivery event.
+`projectRequestHistory` occurs in `*WithResolved` before the runners; `toAiSdkMessages` in `runner-options.ts` can change the provider-facing shape. The guard therefore verifies **presence, position and equality of the injected segment after both transformations**, or a valid named observed-only disposition, not merely the preflight output. A model provider or AI SDK may further serialize messages; capture a mock HTTP body and at least one live model-visible task trial for the qualified profile. If final serialization changes the segment, move the check to the actual send point and requalify; do not issue a false delivery event.
 
 ### 2.4 Tool action seam, to be located by census
 
@@ -176,14 +195,14 @@ Upstream [ZCode's build guide](https://github.com/zai-org/ZCode/blob/29628c9acdb
 
 The initial configuration is opt in and scope declared. Startup attestation binds the installed Desktop Agent, adapter protocol, authenticated Runtime Host availability and source generation. A rollback selects the previously verified whole Desktop build while preserving user data, and records any trial under an old or unknown Agent as unqualified. Do not treat a raw installed-file swap as the deployment plan; use the reproducible staged build and package, then observe the running process.
 
-No source fork is adopted merely because it compiles. The Windows Desktop profile and the final provider/tool boundary inventory determine whether the installed Agent actually carries the required control. A ZCode upstream upgrade must re-run the Desktop launch census and negative trials before restoring the corresponding claim.
+No source overlay is adopted merely because it compiles. The Windows Desktop profile and the final provider/tool boundary inventory determine whether the installed Agent actually carries the required control. A ZCode upstream upgrade must re-run the Desktop launch census and negative trials before restoring the corresponding claim.
 
 ## 4. Suggested change order and reviewable PR slices
 
-1. **Inventory PR:** source and runtime call graph; alternate model clients; all main/subagent/tool entrypoints; assertions of observed versus inferred facts; hook documentation/probe discrepancy; explicit uncovered list.
-2. **Protocol PR:** Runtime adapter service and ZCode connector interfaces with authentication, deadlines, typed errors, a recorder and deterministic receipt/renderer validation. No execution-path switch yet.
+1. **Inventory PR:** source and runtime call graph; alternate model clients; all main/subagent/tool entrypoints; assertions of observed versus inferred facts; hook documentation/probe discrepancy; explicit uncovered list. Prove how every logical invocation reaches `BeforeModelInvocation`, including non-design calls and a `jason-brother` subagent.
+2. **Protocol PR:** Runtime adapter service and ZCode connector interfaces with authentication, Host-enforced per-client verb rights, deadlines, typed errors, a recorder and deterministic receipt/renderer validation. Prove that an Agent-facing identity cannot request Host `Shutdown` or `Mutation`. No execution-path switch yet.
 3. **Model PR:** logical insertion and physical attempt gates in both runners, stream/type safety, retry/cancel/auth tests, mock-wire capture and startup build ID. Keep same options and telemetry behavior when the feature is disabled.
-4. **Action PR:** proven tool dispatcher interception and Host/Qiven dual decision; background/custody parity and outcome reconciliation.
+4. **Action PR:** proven tool dispatcher interception and pre-MVP-5 deny-only Host/Qiven parity; background/custody and outcome reconciliation. Positive execution of governed mutations belongs to the later MVP-5 control path and is not a CA-2 entry gate.
 5. **Trial PR/record:** enable only the declared profile, run the real controlled CA-2 task and independent negative tests, publish coverage and provenance. Promote only after owner-governed acceptance.
 
 This is a suggested subdivision for the **separate harness lane**. It does not add these PRs to the already declared CA-1 batch budget or authorize bypassing the CA-1 stop rule.
