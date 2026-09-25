@@ -4,7 +4,7 @@
 
 ## 1. Inspected baseline and confirmed seams
 
-At inspected upstream ZCode commit [`29628c9`](https://github.com/zai-org/ZCode/tree/29628c9acdb81b703bbd4080c207a0e7ce5e276e):
+At inspected upstream ZCode commit [`29628c9`](https://github.com/zai-org/ZCode/commit/29628c9acdb81b703bbd4080c207a0e7ce5e276e); the exact source files are linked in the table below:
 
 | Source | Confirmed behavior | Implication |
 | --- | --- | --- |

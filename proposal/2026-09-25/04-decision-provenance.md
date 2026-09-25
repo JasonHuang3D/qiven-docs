@@ -10,7 +10,7 @@
 | [`qiven-runtime`](https://github.com/JasonHuang3D/qiven-runtime/tree/7b3ce515774de8f146aefc066ffbf0e69e2e33a4) | `7b3ce515774de8f146aefc066ffbf0e69e2e33a4` | Accepted TCA architecture and MVP roadmap copy; MVP-4 kit candidate |
 | [`qiven-docs`](https://github.com/JasonHuang3D/qiven-docs/tree/7fe0df7627e7bedddc226895294d732bf014b954) | `7fe0df7627e7bedddc226895294d732bf014b954` | Accepted deliberation copies for PR #1 and PR #2; repository submission rules |
 | [`qiven-devkit`](https://github.com/JasonHuang3D/qiven-devkit/tree/945fdd2b399d6701ba2eab79688a730c009e835f) | `945fdd2b399d6701ba2eab79688a730c009e835f` | Engineering process and hook router context; code integration owner |
-| [`ZCode`](https://github.com/zai-org/ZCode/tree/29628c9acdb81b703bbd4080c207a0e7ce5e276e) | `29628c9acdb81b703bbd4080c207a0e7ce5e276e` | Model adapter and build contract actually inspected; not an accepted Qiven governance source |
+| [`ZCode`](https://github.com/zai-org/ZCode/commit/29628c9acdb81b703bbd4080c207a0e7ce5e276e) | `29628c9acdb81b703bbd4080c207a0e7ce5e276e` | Model adapter and build contract actually inspected; not an accepted Qiven governance source |
 
 Inspect the pinned [qiven-docs README](https://github.com/JasonHuang3D/qiven-docs/blob/7fe0df7627e7bedddc226895294d732bf014b954/README.md) for this document's English-only proposal date folder, branch/commit signatures, owner acceptance and subsequent migration rules. Repository state is time-dependent; reviewers should compare current main with these pins before accepting any change.
 
