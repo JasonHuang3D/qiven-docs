@@ -17,6 +17,12 @@ repository. Ignore any commit conventions from any other context.
 
 - **Branch naming**: `<LLM name>/<central idea>`, for example
   `GLM-5.3/tca-amendments`.
+- **Branch base (owner direction 2026-09-25)**: every new PR branch MUST
+  be created from the current `main` — never from another open PR's
+  branch or any other unmerged head. A PR whose branch carries commits
+  from a different open PR is malformed: it is rebased onto `main`
+  (force-push to the same branch is acceptable) before deliberation
+  continues, so that each PR's diff contains only its own documents.
 - **Commit message**: the first line is one sentence stating the central
   idea of the document(s) in the commit. The last line is the signature of
   the LLM with its detailed parameters, for example
