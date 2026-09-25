@@ -1,7 +1,7 @@
 # ADR-0054 (draft): Make Path and IPC Boundary Contracts Single-Owned
 
 > Status: PROPOSED for owner adjudication and later canonical landing in `qiven-context`. This deliberation copy creates no authority by itself.
-> Companion: [ADR-0055 draft](01-adr-0055-simulated-loop-acceptance.md), [incident/evidence audit](02-h1-trial-history-and-defect-evidence.md), and [Foundation architecture/museum audit](03-foundation-architecture-and-museum-transition.md).
+> Companion: [ADR-0055 draft](01-adr-0055-simulated-loop-acceptance.md), [incident/evidence audit](02-h1-trial-history-and-defect-evidence.md), [Foundation architecture/museum audit](03-foundation-architecture-and-museum-transition.md), and [Devkit standards/precedent audit](04-devkit-standards-and-precedent-gate.md).
 
 ## 1. Existing law and the actual decision
 
@@ -31,7 +31,7 @@ The [trial-4 audit](https://github.com/JasonHuang3D/qiven-context/blob/main/evid
 
 ## 4. Acceptance evidence and amendment footprint
 
-The canonical landing should update the affected Runtime and Foundation design/contracts, enumerate exact source SHAs and migrated sites, attach platform cases (Windows with real filesystem alias/reparse probes; Foundation's portable CI), and bind test receipts to the same candidate. Keep a residual ledger for intentionally unsupported input forms, security races and downstream consumers. If a candidate cannot distinguish lexical normalization from authorized object identity, the path wave is not accepted.
+The canonical landing should update the affected Runtime and Foundation design/contracts, apply the [Devkit precedent/independent-oracle gate proposal](04-devkit-standards-and-precedent-gate.md) after owner adjudication, enumerate exact source SHAs and migrated sites, attach platform cases (Windows with real filesystem alias/reparse probes; Foundation's portable CI), and bind test receipts to the same candidate. Keep a residual ledger for intentionally unsupported input forms, security races and downstream consumers. If a candidate cannot distinguish lexical normalization from authorized object identity, the path wave is not accepted.
 
 This ADR refines enforcement of ADR-0024 and the engineering philosophy. The existing Foundation architecture preserves useful product-free, dependency, ownership, cost and portability constraints, but its original admission wording and obsolete linked documents require the [explicit museum/replacement transaction](03-foundation-architecture-and-museum-transition.md). On owner acceptance, amend the live Foundation entry points and Context roadmap/obligations that conflict with these contracts; do not leave a new ADR beside contradictory live instructions.
 
