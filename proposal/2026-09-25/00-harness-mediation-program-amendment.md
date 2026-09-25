@@ -1,0 +1,67 @@
+# Qiven Harness Mediation: Proposed Amendment to the TCA Delivery Program
+
+> Status: PROPOSED for cross-LLM and owner review, 2026-09-25 UTC. No acceptance, implementation, CA-2 qualification, or MVP-5 authorization is claimed.
+> Scope: a ZCode source adapter as the first qualified carrier for Qiven cognition and action mediation. The portable Qiven policy core remains harness independent.
+> Companion documents: [architecture](01-harness-boundary-architecture.md), [ZCode implementation](02-zcode-source-implementation.md), [acceptance and migration](03-acceptance-and-migration.md), and [decision provenance](04-decision-provenance.md).
+
+## 1. Decision requested
+
+Adopt a **source-integrated harness mediation path** as the preferred candidate for the CA-2 pre-design delivery qualification and the declared ZCode deployment profile. Extend, do not discard, the accepted Task Cognition Activation (TCA) program: Runtime still builds the deterministic bundle and issues its receipt; a controlled adapter inside the ZCode invocation and action dispatch paths carries that bundle into a real model request, gates relevant actions, and emits independent boundary observations. Hook-based `additionalContext` remains an admissible, independently qualified ingress where its coverage and exact delivery can be proved, but an enabled hook and a publication-time receipt are not, by themselves, proof of complete invocation coverage.
+
+This is a **proposal to amend the implementation carrier and qualification plan**, not an accepted change to ADR-0050 or the accepted CA-0 verdict. CA-0 found a documented and partially observed hook path, explicitly leaving live `additionalContext` injection and end-to-end qualification for CA-2. Source-level integration is a new candidate because it can attach to actual model invocations, including an invocation without a new user prompt. It, too, must be falsified before any claim of comprehensive control.
+
+### 1.1 The precise claim
+
+Within an enumerated `DeploymentProfile`, `GovernedActorSet`, and `CapabilityUniverse`, a qualified adapter can require Qiven's deterministic activation decision and a matching delivery observation **before each first design-producing model invocation** of a task, and can require an allow/deny decision before each in-scope consequential action. It can observe and constrain model inputs and tool execution in that profile. It cannot read, force, or attest to the model's private reasoning, guarantee comprehension, or govern an uninstrumented process. These limits follow ADR-0038 and the four separate ADR-0050 claims.
+
+The proposal deliberately distinguishes:
+
+| Object | Producer | Proof it supplies | Proof it does not supply |
+| --- | --- | --- | --- |
+| `TaskCognitionBundle` | Qiven Runtime | Deterministic selection from pinned truth | Delivery or understanding |
+| `ContextActivationReceipt` | Qiven Runtime | Task, sources, policy and exact bundle binding | Model invocation or execution authority |
+| `PlacementVerifiedEvent` | ZCode adapter | Exact projected input and order before a send | Delivery or provider acceptance |
+| `InvocationDeliveryEvent` | Qualified adapter/transport observation | Bound model-input/send observation for the declared profile | Model comprehension; provider's hidden internals |
+| `AttemptDispatchEvent` | ZCode adapter | Authorized physical attempt and its final request projection | A successful provider response |
+| `ActionDecisionEvent` | Action boundary | Observation, policy decision and pre-execution order | Semantic intent solely from model text |
+| Fresh review and trial record | Independent orchestrator | Separately produced falsification evidence | Automatic owner H2 approval |
+
+## 2. Which existing decisions remain in force
+
+1. **ADR-0050:** The four claims (Continuity, Activation Correctness, Cognitive Utility, Mechanical Governance) remain separate. Selection is native/local/deterministic; critical applicability cannot be dropped by ranking; the multi-repository `ActivationGeneration` sidecar remains distinct from `RuntimeGeneration`; canonical truth remains Git backed. CA-2 still needs a nonempty, real task-ingress trial, exact delivered bundle, observed ordering, and rejection of withheld/altered/late delivery. The sealed Python Context compiler is not reintroduced. RR-0, the real owner H1 MVP-4 rerun, CA-1/CA-2 and both MVP-7 gates retain their accepted dependency order.
+2. **ADR-0038:** The deployment profile defines the complete-mediation claim. A source patch does not make all shell, human, MCP, background, auxiliary-model, or alternate-binary paths governed by declaration. Tool proposals are `ObservedAction`; inferred semantic `ActionIntent` is a separate claim. Harness action authorization remains conjunctive with Host execution authority. An unresolved execution outcome is not success.
+3. **ADR-0051:** Long commands use harness-native `run_in_background`; completion notifications and output persistence avoid model polling. Process custody, MSBuild node-reuse guards, TaskStop semantics, and the restricted Operator exec classes remain intact. The source adapter must not turn each model retry into a new tool loop.
+4. **ADR-0052:** CA-1's existing exact source lock stays authoritative until WR-7 shadow equivalence and a separately accepted amendment. A ZCode adapter may record its own source revision and `zcode.cjs` digest as **adapter provenance**, never silently substitute WorkspaceGeneration into the TCA content hash or treat a SHA as authorization.
+5. **ADR-0053:** All three roles obey the same engineering law. Main-session `jason-brother` and `jason-extended-cognition` require full project boot; a `jason-worker` subagent receives a bounded engineering brief and scoped applicable rules without a full cold boot. The adapter must mediate eligible subagent paths; role labels do not grant authority. The absolute no-LLM irrecoverable-context-destruction red line and human H1/H2 boundaries remain in force.
+
+## 3. Proposed normative amendment text, subject to owner acceptance
+
+> **HM-1 — Harness adapter.** For a deployment profile claiming before-design activation, the provider of the model invocation must furnish a qualified, observed and non-bypassable delivery boundary for every declared governed invocation class. The first ZCode carrier is a version-pinned source adapter. Any hook carrier is qualified only for the entry paths whose exact delivery and ordering it demonstrates.
+>
+> **HM-2 — Logical activation and physical attempt.** Before a task's first design-producing model call, resolve an observed task descriptor, obtain and validate the exact Qiven bundle and receipt, and insert a bounded renderer result into the next model-visible request. On every physical attempt, after final provider options are assembled and before invoking the model runtime, check that the final message projection still contains exactly the authorized content for that invocation. Record placement separately from qualified delivery. Each retry or resumed stream that causes a new provider call is a separate attempt; it may reuse the same immutable task bundle only if its task, generation, role scope and rendered bytes remain valid.
+>
+> **HM-3 — Fail semantics.** If a governed first-design call has no valid activation, no qualified delivery path, a missing provider-boundary check, or a mismatched bundle, do not dispatch that call. Return a typed blocked/pending outcome and a recovery action. Where a profile is merely observational, record a coverage gap and make no before-design or enforcement claim. A Qiven unavailability rule is chosen explicitly per profile and operation class; a silent successful bypass is forbidden for a claimed governed path.
+>
+> **HM-4 — Action mediation.** Before executing an in-scope tool action, derive the observed operation and target from trusted harness arguments, resolve Qiven's decision and the Host execution gate, and execute only on both allows. Keep permission dialogs, H1/H2 and the harness's own denials. Deny unknown critical applicability visibly. Reconcile unknown outcomes rather than blindly retrying them.
+>
+> **HM-5 — Coverage and version binding.** Publish an audited inventory of model and tool call sites, including main, subagent, retries, auxiliary calls, stream and non-stream variants, alternate entrypoints and installed binaries. Pin the ZCode source commit, dependency lock and built artifact digest to evidence. A new upstream revision, path or role invalidates the applicable coverage claim until requalified; shadow evidence never licenses governed release.
+>
+> **HM-6 — Acceptance.** CA-2 cannot be claimed from a receipt, a hook fire, a unit test or a mock alone. It requires a live controlled R2/R3 task with independently captured request/order/output, negative withheld/altered/late trials, subagent-scope evidence where the profile includes subagents, and Devkit binding of the eventual design/falsification evidence. CA-5 still decides utility with its already accepted trial protocol.
+
+If accepted, canonical ADR and program changes belong in `qiven-context` and `qiven-runtime` through their existing authority and review process. This deliberation copy belongs in `qiven-docs`; this PR alone does not activate new law.
+
+## 4. Conditions for using the stronger route
+
+The first implementation should extend ZCode's adapter and tool dispatch, not rewrite the whole agent loop. A deeper harness rewrite is justified only if the call-site inventory or controlled trials show a required class bypasses those seams. The architectural sufficiency condition is **control at all relevant physical boundaries plus enforceable coverage**, regardless of whether those boundaries are exposed by hooks, a patch, a fork, or a wholly custom harness. Forking by itself is no guarantee: an overlooked provider call or an unpatched installed binary reproduces the original gap.
+
+No architectural claim requires Qiven to monopolize the entire executor. The claim is limited to its declared governed actors and operations. In particular, a direct owner action excluded from a deployment profile stays governed by the collaboration contract, and may not be represented as mediated by this adapter.
+
+## 5. Sequencing decision and stop rules
+
+1. Preserve CA-0's accepted exit as contract and feasibility evidence. Record its residual hook observation explicitly.
+2. Preserve the existing real MVP-4 H1 and RR-0 prerequisites for CA-1; complete CA-1 within its declared bounded batch and stop condition. This proposal does not reprice that batch by silently adding a ZCode fork to it.
+3. Run a **separately bounded harness-adapter qualification lane** as CA-2 preparation after the necessary design/census work. Reserve a concrete effort and stop threshold before coding. If source adaptation breaches the agreed budget, encounters an unmediated in-scope path, or cannot observe final delivery, stop and re-deliberate CA-2; do not declare a pass by changing the measurement.
+4. Use an isolated test build and an independently identifiable installed binary. Compare hook-only, source-adapter and negative trials; accept one route only on the accepted CA-2 gate evidence.
+5. Freeze substantive MVP-5 until CA-2 passes; use the accepted CA-3/CA-4 dogfood and CA-5 utility criteria thereafter. Manual boot and active-memory sweep are retired only under their existing replacement acceptance criteria.
+
+The companion acceptance document defines a proposed stage budget and go/no-go packet; those numbers become binding only through the proper owner-accepted amendment. Implementation cannot presume this proposal already changes an H1 gate, an ADR status, or an existing source lock.
