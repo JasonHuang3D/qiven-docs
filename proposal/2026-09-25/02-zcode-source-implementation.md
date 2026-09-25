@@ -32,16 +32,30 @@ These are confirmed **model-adapter** paths, not yet a proof that every model in
 
 ```ts
 // qiven-harness-adapter.ts -- proposed names and types, not upstream API.
+type TaskScope =
+  | Readonly<{
+      kind: "bound";
+      taskId: string;
+      phaseEpoch: string;
+      role: "jason-worker" | "jason-brother" | "jason-extended-cognition";
+      observedBoundaryId: string;
+      delegatedBriefSha256?: string;
+    }>
+  | Readonly<{ kind: "unbound"; reason: "pre_task" | "background" | "system" }>;
+
 type InvocationKey = Readonly<{
   sessionId: string;
-  taskId: string;
-  phaseEpoch: string;
-  role: "jason-worker" | "jason-brother" | "jason-extended-cognition";
   callId: string;
+  actorKind: "main" | "subagent" | "workflow_child" | "system" | "tool";
+  scope: TaskScope;
+}>;
+
+type BoundInvocationKey = InvocationKey & Readonly<{
+  scope: Extract<TaskScope, { kind: "bound" }>;
 }>;
 
 type PreparedInvocation = Readonly<{
-  key: InvocationKey;
+  key: BoundInvocationKey;
   receiptId: string;
   bundleSha256: string;
   activationGeneration: string;
@@ -64,7 +78,7 @@ type ModelInvocationDecision =
 interface QivenMediationPort {
   beforeModelInvocation(input: {
     invocation: InvocationKey;
-    task: ObservedAndClaimedTask;
+    task: ObservedAndClaimedTask | UnboundTaskEvidence;
     callClass: ModelCallClass;
     providerId: string;
     modelId: string;
@@ -86,6 +100,14 @@ interface QivenMediationPort {
 
 `PublicRequestProjection` excludes `accountAccess`, headers, bearer tokens, auth callbacks and sensitive debug bodies. The adapter compares actual projected segment bytes locally and sends bounded proofs/digests; full prompts are captured only in the separately controlled trial channel. The connector must be versioned, authenticated and bounded. Current Runtime Host IPC has an owner-only DACL and installed-image allowlist with a same-user DPAPI/HMAC secret, but no caller-specific verb authorization; any authenticated client can request `Shutdown`. Do not add the Electron Agent to that broad client set or expose its reusable owner secret to JS. Introduce a narrow native connector or separate endpoint and enforce per-client/per-operation rights at the Host, with negative `Shutdown` and `Mutation` probes. The existing one-shot `qiven-adapter-bridge` is hook-mapping state tooling, not this Host RPC. Per-verb checks prevent a broad Agent credential but cannot isolate hostile code already running as the same Windows user with access to the DPAPI secret or allowed owner executables. Record that trust limit; stronger hostile-process claims require OS identity isolation and separate credentials. Exact C++ operation names and transport schema must be reconciled against CA-1 implementation before coding; no invented `qiven cognition` subcommand is represented as currently shipped.
 
+### 2.1.1 Origin and call-class propagation
+
+The inspected [ZCode `ModelInvocationContext`](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/contracts/src/model/invocation-context.ts#L15-L21) uses Node `AsyncLocalStorage`; its [`runWithModelInvocationContext`](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/contracts/src/model/invocation-context.ts#L72-L102) also re-enters that context on an async iterator's `next/return/throw`. [`runtime-model.ts`](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/core/src/runtime/methods/runtime-model.ts#L44-L92) wraps model handles and merges call context, and [`runner.ts`](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/adapters/src/model/runner.ts#L138-L194) reads it in `toLegacyRequest`. These are usable **in-process propagation mechanics**, not existing Qiven identity or authorization. Today's [`ModelApiCallObservation`](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/contracts/src/telemetry/index.ts#L114-L146) and `querySource` fallback name telemetry operations/actors; they do not bind the observed task ingress, phase epoch or Jason role. In particular, `actorKind: "subagent"` is not proof of which Jason role was delegated, while a title, compaction or tool-internal model call may have no bound Jason task at all.
+
+Extend the core-owned invocation context with a private, typed `qivenOrigin` record containing `sessionId`, a generated per-logical-call ID, trusted call-site/class ID, actor kind, and a `TaskScope` matching the union above. For `bound`, obtain task and phase from the observed ingress/Runtime task ledger, role and delegator/brief binding from the actual main or subagent creation path; for `unbound`, record why no task exists. This field is set by vetted core call sites, never copied from `ModelRequest`, `metadata`, model output, `agentName`, or an arbitrary `querySource`. Propagate it via `withModelInvocationContext` into the adapter, but strip it into a private side channel at `toLegacyRequest`: the current implementation spreads the remaining invocation context into the legacy request, so simply adding `qivenOrigin` to the type would leak a control field into provider option construction, telemetry or debug paths. Keep model-facing `AiSdkModelTextRequest` and public diagnostics free of this field and never let a model-handle factory snapshot mutable task state at creation. Verify the context survives lazy stream consumption; capture the origin at call time and recheck phase/source freshness at first iteration and every send. Do not assume `AsyncLocalStorage` survives a Desktop Host-to-Agent or subagent **process** boundary: establish a separately authenticated, scoped delegation/ingress envelope and validate it against Runtime facts on the receiving side. The trusted connector identity proves which build/process is asking, not that a supplied task/role field is true.
+
+The initial call-site census must include at least [main `model.ts` calls](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/core/src/runtime/methods/model.ts#L80-L143), [compaction stream-to-generate fallback](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/core/src/runtime/methods/compact-summary-model-request.ts#L285-L330), [title generation](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/core/src/runtime/methods/title-generation-sidecar.ts#L130-L156), [project-memory agent](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/core/src/runtime/helpers/project-memory-agent.ts#L48-L77), and [tool-internal WebSearch](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/core/src/tool/handlers/websearch.ts). The compaction helper [copies a fixed set of fields into a new async context](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/core/src/runtime/methods/compact-summary-model-request.ts#L24-L36) [for both stream and generate](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/core/src/runtime/methods/compact-summary-model-request.ts#L285-L331); simply adding a field to an outer context would lose it. Extend the request type and explicit copy with `qivenOrigin`, and assign a distinct Qiven logical call ID to both the initial compaction stream and its non-stream fallback (which [already receives a distinct telemetry ID](https://github.com/zai-org/ZCode/blob/29628c9acdb81b703bbd4080c207a0e7ce5e276e/apps/zcode-cli/packages/core/src/runtime/methods/compact-summary-model-request.ts#L74-L86)). Likewise, a tool-internal call that creates a new context must propagate its vetted tool/task origin explicitly. Each replacement call needs its **own** Qiven decision and current input check; carrying the prior context or delivery record across the replacement fails. Validate ADR-0053 actor/role combinations at the runtime boundary, including a brother subagent's full boot and the extended-cognition main-only rule. Add remaining callers, alternate SDK paths and actual subagent spawn routes to the executable census rather than extrapolating from these examples. An absent/contradictory origin is `UnqualifiedOrigin`: still record the encountered call, but deny a governed dispatch. An unbound call is not automatically exempt: Qiven may admit a named observed-only class only after proving its output cannot influence governed design/action state. Compaction summaries and tool outputs that feed later prompts fail that test unless separately contained.
+
 ### 2.2 Logical seam in `runner.ts`
 
 The user's sketch is directionally correct for this seam. The following shape handles both executor return types and avoids passing sensitive `resolved` to Qiven. `beforeModelInvocation` runs on **every** logical call, including a later call that reuses a bundle; a denial cannot enter either runner:
@@ -93,8 +115,8 @@ The user's sketch is directionally correct for this seam. The following shape ha
 ```ts
 executor: {
   generateText: async (request) => {
-    const legacy = toLegacyRequest(request);
-    const invocation = captureHarnessInvocation();
+    const invocation = captureHarnessInvocation(); // reads private qivenOrigin or blocks
+    const legacy = toLegacyRequest(request); // strips origin from provider fields
     const decision = await qiven.beforeModelInvocation({
       invocation,
       task: observeTaskEnvelope(invocation),
@@ -112,8 +134,8 @@ executor: {
     );
   },
   streamText: (request) => {
-    const legacy = toLegacyRequest(request);
-    const invocation = captureHarnessInvocation(); // captured before lazy iteration
+    const invocation = captureHarnessInvocation(); // capture before lazy iteration
+    const legacy = toLegacyRequest(request); // strips origin from provider fields
     const task = observeTaskEnvelope(invocation);
     const callClass = classifyModelCall(invocation);
     return (async function* () {
@@ -136,7 +158,7 @@ executor: {
 }
 ```
 
-In real code, preserve `this` by using a bound/local `runPreparedStream`, and use the repo's concrete message types. A lazily iterated stream captures its invocation/role context at call time, **before** the caller consumes it; the generator revalidates phase and source freshness at execution time. `applyQualifiedDecision` preserves the exact authorized protected segment if already present in projected history, otherwise inserts it through a typed helper with explicit priority/ordering and idempotence. It must do so for every design-capable call, including a later call after compaction or a delegated subagent with fresh input. A reused activation means the complete TCA §17.3 cache binding was revalidated; it never permits receipt-only input or reuse of an earlier delivery event. A shorter segment requires a new Runtime-approved policy/renderer/budget binding and receipt retaining all applicable protected items. An observed-only class is admitted only under a named policy proving that call cannot influence governed design/action state. A new `messages` array is derived without mutating canonical conversation history. The returned object passes request validation rules; model options are bound from the original `request.options`. If mediation changes anything other than an allowed message addition, reject it with a typed protocol error. The `callClass` is derived from trusted harness context and remains a claim until independently censused; a model-supplied label cannot create an exemption.
+In real code, preserve `this` by using a bound/local `runPreparedStream`, and use the repo's concrete message types. A lazily iterated stream captures its invocation/role context at call time, **before** the caller consumes it; the generator revalidates phase and source freshness at execution time. `applyQualifiedDecision` preserves the exact authorized protected segment if already present in projected history, otherwise inserts it through a typed helper with explicit priority/ordering and idempotence. It must do so for every design-capable call, including a later call after compaction or a delegated subagent with fresh input. A reused activation means the complete TCA §17.3 cache binding was revalidated; it never permits receipt-only input or reuse of an earlier delivery event. A shorter segment requires a new Runtime-approved policy/renderer/budget binding and receipt retaining all applicable protected items. An observed-only class is admitted only under a named policy proving that call cannot influence governed design/action state. A new `messages` array is derived without mutating canonical conversation history. The returned object passes request validation rules; model options are bound from the original `request.options`. If mediation changes anything other than an allowed message addition, reject it with a typed protocol error. The `callClass` and task scope are taken from the core-owned `qivenOrigin` established in §2.1.1, then reconciled by Qiven against task/role and call-site evidence. Do not silently fall back from a missing origin to telemetry `modelCall` or `querySource`; `UnqualifiedOrigin` is a typed block for governed calls. A model-supplied label cannot create an exemption.
 
 ### 2.3 Physical attempt seam in both runners
 
