@@ -25,7 +25,7 @@ These are confirmed **model-adapter** paths, not yet a proof that every model in
 | `qiven-context` | Owner-accepted ADR/program amendment after deliberation; if admitted, update control policy/coverage inventory and obligation | Do not edit an accepted ADR's historical decision or mark this proposal accepted by a docs PR |
 | `qiven-runtime` | Native `BeforeModelInvocation`/attempt-decision operations over CA-1 core, a capability-scoped connector identity and durable events | Existing Host IPC is not a drop-in Agent privilege: server-side per-client verb checks must reject owner `Shutdown`/`Mutation` from this identity; no broad owner secret in Desktop JS |
 | `qiven-devkit` | Connector contract conformance, generation/coverage verification, task/role schema mapping, independent negative trials and publication gate bindings | Never treat a bundle issuance as proof of delivery or a tool status as proof of control |
-| ZCode source overlay | Small version-checked patch set: all-logical-invocation adapter call, physical attempt guard at both runner call sites, actual tool dispatch guard, build ID and observation writer | Rebase reproducibly on the pinned upstream; preserve provider binding, option validation, auth, cancellation, telemetry, background execution and release packaging |
+| ZCode source overlay | Small version-checked patch set: all-logical-invocation adapter call, physical attempt guard at both runner call sites, final tool dispatch guard, provider-side effect census, build ID and observation writer | Rebase reproducibly on the pinned upstream; preserve provider binding, option validation, auth, cancellation, telemetry, background execution and release packaging; never turn a Host allow into a raw ZCode mutation |
 | `qiven-docs` | This proposal and signed cross-LLM/owner deliberation | Merge and accepted migration only under owner acceptance |
 
 ### 2.1 Proposed local TypeScript contract
@@ -182,7 +182,7 @@ if (!permit.matchesFinalProjection) throw new QivenMediationError("DeliveryMisma
 // input.runtime.streamText(options). Do not await runtime.streamText itself.
 ```
 
-`model_request_started` currently appears after options construction and before send. Make its semantics precise: authorization is not network acceptance; emit a separate authorized/placement event or move the started record after successful runtime call setup and preserve the existing accounting contract. Even successful runtime call setup is not independently proved provider acceptance: a separately qualified transport observation or real captured trial is needed before issuing `InvocationDeliveryEvent`. Route a Qiven pre-dispatch failure to a **nonretryable local failure class** that cannot be mistaken for provider throttling, stream idle timeouts, or a retryable auth error. Do not let existing generic catch/retry paths silently make an unauthorized next attempt. Keep request ID fresh for a new physical attempt; refresh auth once per existing ZCode rules. Signature-repair retry may legitimately alter earlier reasoning messages, so compare the registered injected segment in the final projection rather than requiring the whole request byte hash to equal the initial logical request. Record the whole final projection digest for correlation.
+`model_request_started` currently appears after options construction and before send. Make its semantics precise: authorization is not network acceptance; emit a separate authorized/placement event or move the started record after successful runtime call setup and preserve the existing accounting contract. Even successful runtime call setup is not independently proved provider acceptance: a separately qualified transport observation or real captured trial is needed before issuing `InvocationDeliveryEvent`. Route a Qiven pre-dispatch failure to a **nonretryable local failure class** that cannot be mistaken for provider throttling, stream idle timeouts, or a retryable auth error. Do not let existing generic catch/retry paths silently make an unauthorized next attempt. Keep request ID fresh for a new physical attempt; refresh auth once per existing ZCode rules. Signature-repair retry may legitimately alter earlier reasoning messages, so compare the registered injected segment in the final projection rather than requiring the whole request byte hash to equal the initial logical request. Record the whole final projection digest for correlation. Census the final provider options for hosted tools or server-side effects: if a provider could perform an in-scope effect upon receiving this request, the local post-output and tool-dispatch gates are too late. Disable that capability in the qualified profile or require a separately accepted pre-send mediation path; prove the option/serialized body used for the actual attempt.
 
 `projectRequestHistory` occurs in `*WithResolved` before the runners; `toAiSdkMessages` in `runner-options.ts` can change the provider-facing shape. The guard therefore verifies **presence, position and equality of the injected segment after both transformations**, or a valid named observed-only disposition, not merely the preflight output. A model provider or AI SDK may further serialize messages; capture a mock HTTP body and at least one live model-visible task trial for the qualified profile. If final serialization changes the segment, move the check to the actual send point and requalify; do not issue a false delivery event. For a claimed governed design path, the attempt's qualified delivery observation must precede release of any design output, including streamed output. Bound any buffering while the transport observation is pending; missing or late observation blocks/cancels the governed attempt, and a later response cannot backdate delivery. Only an explicitly observational shadow run may retain unqualified output outside acceptance.
 
@@ -190,16 +190,31 @@ Implement that release gate at the per-attempt runner boundary across **all** mo
 
 ### 2.4 Tool action seam, to be located by census
 
-Instrument the actual dispatcher that has the final structured tool name, arguments, execution target and permission result. It must run before the side effect, and must cover tools exposed to main and subagent models as claimed in the profile. Model output is a proposal; classify trusted observed mechanism facts separately from claimed intent.
+Instrument the actual dispatcher that has the final structured tool name, arguments, execution target and permission result. It must run before the side effect and cover main/subagent tools. Model output is a proposal; classify trusted mechanism facts separately from claimed intent. The following is illustrative, not a shipped Host API:
 
 ```ts
-const observed = observeToolRequest(finalToolName, validatedArgs, target, invocationRef);
-const [qivenDecision, hostDecision] = await decideBeforeDispatch(observed);
-if (!qivenDecision.allow || !hostDecision.allow) return typedDenial(...);
-return executeWithOutcomeObservation(observed, existingExecutor);
+const proposed = observeToolRequest(finalToolName, validatedArgs, target, invocationRef);
+const qivenDecision = await qiven.decideAction(proposed);
+if (!qivenDecision.allow) return typedDenial("CognitionDenied");
+const permission = await resolveZCodePermission(proposed);
+if (!permission.allow) return typedDenial("PermissionDenied");
+const finalAction = observeFinalDispatchArguments();
+if (!stillBound(qivenDecision, finalAction, currentCognitionRevision(),
+                acceptedDeploymentProfileRevision())) {
+  return typedDenial("StaleActionDecision");
+}
+if (finalAction.kind === "governed-local-mutation") {
+  // Host validates Qiven's server-side decision, its current lease/fence,
+  // and the exact final action; it executes inside its broker.
+  return hostBroker.executeWithCurrentAdmission(finalAction, qivenDecision);
+}
+if (finalAction.kind === "qualified-read-only") {
+  return executeWithOutcomeObservation(finalAction, existingExecutor);
+}
+return typedDenial("UnqualifiedActionPath");
 ```
 
-The sketch does not license parallel permission side effects: implement decision ordering according to the existing ZCode permission protocol, with no execute before both permissions. A hook denial or `PostToolUse` context cannot replace the complete action guard without profile qualification. Preserve `run_in_background`, completion notification, `TaskStop` tree termination, oversized-output persistence and ADR-0048 custody. Ensure public tool boundaries, MCP delegation, shell and filesystem writes have distinct census rows; if an auxiliary executor bypasses the central dispatcher, instrument it or exclude its operation class honestly.
+ADR-0038 §§8-9/14 require Qiven allow to bind the exact final action, pinned cognition/policy, satisfying evidence and accepted DeploymentProfile revision. A changed argument, target, policy, evidence or profile invalidates that allow; the Host independently rechecks lease/fencing when it executes. For a governed JasonPC mutation, Host approval followed by `existingExecutor` is a bypass: the Host broker must verify the Qiven decision using trusted server-side state (not an Agent-supplied Boolean) and own execution, journaling and indeterminate-outcome reconciliation. If permission handling changes the final action, both Qiven and harness permission must be reacquired for that new proposal. Before MVP-5 the current Host denies governed raw writes, so this branch remains deny-only. External consequential effects need a separately qualified authority route; they do not silently fall through the read-only branch. A hook denial or `PostToolUse` context cannot replace the complete action guard without profile qualification. Preserve `run_in_background`, completion notification, `TaskStop` tree termination, oversized-output persistence and ADR-0048 custody. Ensure public tool boundaries, MCP delegation, shell and filesystem writes have distinct census rows; if an auxiliary executor bypasses the central dispatcher, instrument it or exclude its operation class honestly. Provider-hosted effects occur at model send rather than local dispatch, so account for them in the physical-attempt census even if this source revision has none enabled.
 
 ## 3. Windows Desktop build, startup and reproducibility
 
@@ -234,7 +249,7 @@ No source overlay is adopted merely because it compiles. The Windows Desktop pro
 1. **Inventory PR:** source and runtime call graph; alternate model clients; all main/subagent/tool entrypoints; assertions of observed versus inferred facts; hook documentation/probe discrepancy; explicit uncovered list. Prove how every logical invocation reaches `BeforeModelInvocation`, including non-design calls and a `jason-brother` subagent.
 2. **Protocol PR:** Runtime adapter service and ZCode connector interfaces with authentication, Host-enforced per-client verb rights, deadlines, typed errors, a recorder and deterministic receipt/renderer validation. Prove that an Agent-facing identity cannot request Host `Shutdown` or `Mutation`. No execution-path switch yet.
 3. **Model PR:** logical insertion and physical attempt gates in both runners, full-binding reuse and post-compaction/subagent input tests, stream/type safety, delivery-before-output, retry/cancel/auth tests, mock-wire capture and startup build ID. Keep same options and telemetry behavior when the feature is disabled.
-4. **Action PR:** proven tool dispatcher interception and pre-MVP-5 deny-only Host/Qiven parity; background/custody and outcome reconciliation. Positive execution of governed mutations belongs to the later MVP-5 control path and is not a CA-2 entry gate.
+4. **Action PR:** proven tool dispatcher interception, final-action/profile binding and pre-MVP-5 deny-only Host/Qiven parity; provider-hosted effect inventory, background/custody and outcome reconciliation. Affirmative JasonPC local mutation will require Host broker execution, not a direct ZCode executor. Positive execution of governed mutations belongs to the later MVP-5 control path and is not a CA-2 entry gate.
 5. **Trial PR/record:** enable only the declared profile, run the real controlled CA-2 task and independent negative tests, publish coverage and provenance. Promote only after owner-governed acceptance.
 
 This is a suggested subdivision for the **separate harness lane**. It does not add these PRs to the already declared CA-1 batch budget or authorize bypassing the CA-1 stop rule.
