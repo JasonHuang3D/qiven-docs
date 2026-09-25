@@ -1,6 +1,6 @@
 # ADR-0055 (draft): Deterministic Mediation Acceptance with an Explicit Desktop Claim Boundary
 
-> Status: PROPOSED for owner adjudication and canonical landing in `qiven-context`. Companion: [ADR-0054](00-adr-0054-typed-identity-law.md) and [evidence audit](02-h1-trial-history-and-defect-evidence.md).
+> Status: PROPOSED for owner adjudication and canonical landing in `qiven-context`. Companion: [ADR-0054](00-adr-0054-typed-identity-law.md), [evidence audit](02-h1-trial-history-and-defect-evidence.md), [Foundation architecture/museum audit](03-foundation-architecture-and-museum-transition.md), [Devkit standards/precedent audit](04-devkit-standards-and-precedent-gate.md), and [Host/DCR retirement audit](05-retire-host-dcr-and-native-doc-authority.md).
 
 ## 1. Decision and exact supersession
 
@@ -20,9 +20,15 @@ A local mock proves how the real harness routes and enforces scripted tool calls
 
 ## 3. Desktop binding and claim ledger
 
-Before claiming **MVP-4 accepted for the intended Desktop profile**, bind the Layer-2 harness revision to the actual installed Desktop application. Record the installed binary/build identity, effective hook configuration and registration, client launch/CWD/profile resolution, hook executable and host image digests, captured payloads, and the evidence that the same parser, hook-decision and tool-execution contract applies. Prefer an automated Desktop/dev-mode run against the local mock when the installed build supports it; use an automated installed-artifact configuration/launch smoke plus direct behavior comparison when a release build cannot redirect its provider. A *source-built dev-mode Desktop* alone is not an installed-build equivalence proof. Any discrepancy triggers a narrow Desktop integration test or an explicit claim downgrade.
+Before claiming **MVP-4 accepted for the intended Desktop profile**, bind the Layer-2 harness revision to the actual installed Desktop application. Record the installed binary/build identity, effective hook configuration and registration, client launch/CWD/profile resolution, hook executable and host image digests, captured payloads, and the evidence that the same parser, hook-decision and tool-execution contract applies. Rank the available evidence on the following explicit ladder, and label the acceptance report with the highest tier actually achieved:
 
-If that binding cannot be demonstrated without owner hands, Layer 1 and CLI Layer 2 may pass as **CLI/hook/host mediation evidence**, but the Desktop-profile MVP-4 exit remains **NOT ACCEPTED**. Do not convert an optional owner smoke into a hidden mandatory trial or claim that CLI evidence alone covers the application the owner actually uses. The owner may accept a deliberately narrower CLI-only milestone in a separate canonical scope decision; it must be named as such. No human GUI trial is required by default merely to check mechanical scenarios.
+1. **Installed-build redirect** — the installed Desktop application itself is redirected to the local mock provider and runs the full loop. This tier alone proves the real carrier end to end.
+2. **Dev-mode Desktop plus installed-artifact comparison** — an automated Desktop/dev-mode run against the local mock, *combined with* an installed-artifact configuration/launch smoke and a direct behavior comparison showing that the installed build applies the same parser, hook-decision and tool-execution contract. The dev-mode run alone is not an installed-build equivalence proof; the comparison is what earns this tier.
+3. **CLI-only** — Layers 1 and 2 green without any Desktop binding. Reportable as CLI/hook/host mediation evidence only; see the downgrade rule below.
+
+Any discrepancy between tiers (for example, an installed build that registers hooks or parses tool calls differently from the pinned harness) triggers a narrow Desktop integration test or an explicit claim downgrade.
+
+If no tier above CLI-only can be demonstrated without owner hands, Layer 1 and CLI Layer 2 may pass as **CLI/hook/host mediation evidence**, but the Desktop-profile MVP-4 exit remains **NOT ACCEPTED**. Do not convert an optional owner smoke into a hidden mandatory trial or claim that CLI evidence alone covers the application the owner actually uses. The owner may accept a deliberately narrower CLI-only milestone in a separate canonical scope decision; it must be named as such. No human GUI trial is required by default merely to check mechanical scenarios.
 
 ## 4. Reproducibility and operational contract
 
