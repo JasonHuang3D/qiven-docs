@@ -45,7 +45,13 @@ type PreparedInvocation = Readonly<{
   receiptId: string;
   bundleSha256: string;
   activationGeneration: string;
+  sourceLockSha256: string;
+  policySha256: string;
+  consumerProfile: string;
+  rendererBuild: string;
   rendererSha256: string;
+  budgetBinding: string;
+  liveEvidenceBinding: string;
   insertedSegmentId: string;
   expiresAt?: string;
 }>;
@@ -65,7 +71,7 @@ interface QivenMediationPort {
     projectedRequest: PublicRequestProjection;
     abortSignal?: AbortSignal;
   }): Promise<ModelInvocationDecision>;
-  authorizeAttempt(input: {
+  authorizePhysicalAttempt(input: {
     decision: Exclude<ModelInvocationDecision, { kind: "deny" }>;
     attempt: number;
     finalProjectionDigest: string;
@@ -130,13 +136,15 @@ executor: {
 }
 ```
 
-In real code, preserve `this` by using a bound/local `runPreparedStream`, and use the repo's concrete message types. A lazily iterated stream captures its invocation/role context at call time, **before** the caller consumes it; the generator revalidates phase and source freshness at execution time. `applyQualifiedDecision` inserts a segment through a typed helper with explicit priority/ordering and idempotence, or accepts an observed-only class only under a named policy proving that call cannot influence governed design/action state. A new `messages` array is derived without mutating canonical conversation history. The returned object passes request validation rules; model options are bound from the original `request.options`. If mediation changes anything other than an allowed message addition, reject it with a typed protocol error. The `callClass` is derived from trusted harness context and remains a claim until independently censused; a model-supplied label cannot create an exemption.
+In real code, preserve `this` by using a bound/local `runPreparedStream`, and use the repo's concrete message types. A lazily iterated stream captures its invocation/role context at call time, **before** the caller consumes it; the generator revalidates phase and source freshness at execution time. `applyQualifiedDecision` preserves the exact authorized protected segment if already present in projected history, otherwise inserts it through a typed helper with explicit priority/ordering and idempotence. It must do so for every design-capable call, including a later call after compaction or a delegated subagent with fresh input. A reused activation means the complete TCA §17.3 cache binding was revalidated; it never permits receipt-only input or reuse of an earlier delivery event. A shorter segment requires a new Runtime-approved policy/renderer/budget binding and receipt retaining all applicable protected items. An observed-only class is admitted only under a named policy proving that call cannot influence governed design/action state. A new `messages` array is derived without mutating canonical conversation history. The returned object passes request validation rules; model options are bound from the original `request.options`. If mediation changes anything other than an allowed message addition, reject it with a typed protocol error. The `callClass` is derived from trusted harness context and remains a claim until independently censused; a model-supplied label cannot create an exemption.
 
 ### 2.3 Physical attempt seam in both runners
 
 Pass the per-call `decision` to `runGenerateText` and `runStreamText` (or an equivalent context object). After `createGenerateTextOptions` / `createStreamTextOptions`, and before `input.runtime.generateText(options)` / `.streamText(options)`, do the following for **every attempt**:
 
 ```ts
+// Check exact protected bytes and priority in this attempt's final projection,
+// even when the segment was already present in projected history.
 const proof = verifyLocalSegmentAndHash(options.messages, options.tools, decision);
 const permit = await qiven.authorizePhysicalAttempt({
   decision,
@@ -154,7 +162,7 @@ if (!permit.matchesFinalProjection) throw new QivenMediationError("DeliveryMisma
 
 `model_request_started` currently appears after options construction and before send. Make its semantics precise: authorization is not network acceptance; emit a separate authorized/placement event or move the started record after successful runtime call setup and preserve the existing accounting contract. Even successful runtime call setup is not independently proved provider acceptance: a separately qualified transport observation or real captured trial is needed before issuing `InvocationDeliveryEvent`. Route a Qiven pre-dispatch failure to a **nonretryable local failure class** that cannot be mistaken for provider throttling, stream idle timeouts, or a retryable auth error. Do not let existing generic catch/retry paths silently make an unauthorized next attempt. Keep request ID fresh for a new physical attempt; refresh auth once per existing ZCode rules. Signature-repair retry may legitimately alter earlier reasoning messages, so compare the registered injected segment in the final projection rather than requiring the whole request byte hash to equal the initial logical request. Record the whole final projection digest for correlation.
 
-`projectRequestHistory` occurs in `*WithResolved` before the runners; `toAiSdkMessages` in `runner-options.ts` can change the provider-facing shape. The guard therefore verifies **presence, position and equality of the injected segment after both transformations**, or a valid named observed-only disposition, not merely the preflight output. A model provider or AI SDK may further serialize messages; capture a mock HTTP body and at least one live model-visible task trial for the qualified profile. If final serialization changes the segment, move the check to the actual send point and requalify; do not issue a false delivery event.
+`projectRequestHistory` occurs in `*WithResolved` before the runners; `toAiSdkMessages` in `runner-options.ts` can change the provider-facing shape. The guard therefore verifies **presence, position and equality of the injected segment after both transformations**, or a valid named observed-only disposition, not merely the preflight output. A model provider or AI SDK may further serialize messages; capture a mock HTTP body and at least one live model-visible task trial for the qualified profile. If final serialization changes the segment, move the check to the actual send point and requalify; do not issue a false delivery event. For a claimed governed design path, the attempt's qualified delivery observation must precede release of any design output, including streamed output. Bound any buffering while the transport observation is pending; missing or late observation blocks/cancels the governed attempt, and a later response cannot backdate delivery. Only an explicitly observational shadow run may retain unqualified output outside acceptance.
 
 ### 2.4 Tool action seam, to be located by census
 
@@ -201,7 +209,7 @@ No source overlay is adopted merely because it compiles. The Windows Desktop pro
 
 1. **Inventory PR:** source and runtime call graph; alternate model clients; all main/subagent/tool entrypoints; assertions of observed versus inferred facts; hook documentation/probe discrepancy; explicit uncovered list. Prove how every logical invocation reaches `BeforeModelInvocation`, including non-design calls and a `jason-brother` subagent.
 2. **Protocol PR:** Runtime adapter service and ZCode connector interfaces with authentication, Host-enforced per-client verb rights, deadlines, typed errors, a recorder and deterministic receipt/renderer validation. Prove that an Agent-facing identity cannot request Host `Shutdown` or `Mutation`. No execution-path switch yet.
-3. **Model PR:** logical insertion and physical attempt gates in both runners, stream/type safety, retry/cancel/auth tests, mock-wire capture and startup build ID. Keep same options and telemetry behavior when the feature is disabled.
+3. **Model PR:** logical insertion and physical attempt gates in both runners, full-binding reuse and post-compaction/subagent input tests, stream/type safety, delivery-before-output, retry/cancel/auth tests, mock-wire capture and startup build ID. Keep same options and telemetry behavior when the feature is disabled.
 4. **Action PR:** proven tool dispatcher interception and pre-MVP-5 deny-only Host/Qiven parity; background/custody and outcome reconciliation. Positive execution of governed mutations belongs to the later MVP-5 control path and is not a CA-2 entry gate.
 5. **Trial PR/record:** enable only the declared profile, run the real controlled CA-2 task and independent negative tests, publish coverage and provenance. Promote only after owner-governed acceptance.
 
