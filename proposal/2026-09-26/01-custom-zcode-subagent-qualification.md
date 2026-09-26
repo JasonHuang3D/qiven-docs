@@ -1,6 +1,6 @@
 # Qualify custom ZCode subagents before PR4 acceptance
 
-> Status: 2026-09-26 owner-directed **proposal and pre-acceptance condition**, not a record that an agent was installed. Companion: [context-continuity proposal](00-compaction-continuity-and-h1-simulation.md), [simulated H1 proposal](../2026-09-25/01-adr-0055-simulated-loop-acceptance.md). The currently accepted [ADR-0053](https://github.com/JasonHuang3D/qiven-context/blob/a735ce551e7bc8cce033ec6bda30513922ca5ed2/decisions/ADR-0053.md) and [delegation workflow](https://github.com/JasonHuang3D/qiven-context/blob/a735ce551e7bc8cce033ec6bda30513922ca5ed2/views/workflows/subagent-delegation.md) retain authority until explicitly amended in their own repository.
+> Status: ACCEPTED 2026-09-26 (owner direction). The pre-acceptance condition is SATISFIED: the measured Desktop qualification ran on the live installation (build 3.14.3.7762) and all seven pre-registered gates PASS — `CUSTOM_REVIEWER_QUALIFIED` for the scoped read-only review path; see the [qualification evidence](02-reviewer-qualification-evidence.md) for the binding scope note. Companion: [context-continuity proposal](00-compaction-continuity-and-h1-simulation.md), [simulated H1 proposal](../2026-09-25/01-adr-0055-simulated-loop-acceptance.md). The currently accepted [ADR-0053](https://github.com/JasonHuang3D/qiven-context/blob/a735ce551e7bc8cce033ec6bda30513922ca5ed2/decisions/ADR-0053.md) and [delegation workflow](https://github.com/JasonHuang3D/qiven-context/blob/a735ce551e7bc8cce033ec6bda30513922ca5ed2/views/workflows/subagent-delegation.md) retain authority until explicitly amended in their own repository.
 
 ## 1. Judgment and the actual boundary
 
@@ -68,4 +68,16 @@ Before asking the owner to accept PR4, run the following on the **actual intende
 
 ## 5. Current disposition
 
-Only qiven-docs is writable in this PR round. The qualification has **not yet been performed**: no global ZCode profile has been installed, loaded or tested, and this proposal makes no claim that it was. The owner can review this concrete configuration now; acceptance remains pending its measured Desktop qualification and the README owner-acceptance transaction. Keep the accepted Context delegation law unchanged until a separate accepted amendment.
+**The qualification HAS been performed and PASSED** (2026-09-26T12:31Z,
+on the live installation, build 3.14.3.7762): the profile was installed
+at `~/.zcode/agents/qiven-fresh-review.md`, loaded by a fresh session,
+and the full battery of §4 ran — clean eight-section brief,
+process-record-laden variant, and adversarial tool probes, with the
+mechanical transcript audit. All seven pre-registered gates PASS;
+status `CUSTOM_REVIEWER_QUALIFIED` for the scoped read-only review
+path. The measured record, including the binding scope note (surface
+restriction is not hook mediation; the built-in `general-purpose`
+path stands uncovered; R3-class isolation and MVP-4 H1 are NOT
+established), is the [qualification evidence](02-reviewer-qualification-evidence.md).
+The accepted Context delegation law remains unchanged until a separate
+accepted amendment.
