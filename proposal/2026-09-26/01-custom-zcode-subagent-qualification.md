@@ -68,4 +68,4 @@ Before asking the owner to accept PR4, run the following on the **actual intende
 
 ## 5. Current disposition
 
-Only qiven-docs is writable in this PR round. The owner Desktop device reported offline when checked on 2026-09-26 at 11:27 UTC, so this proposal cannot truthfully claim the global ZCode profile was installed, loaded or tested. The owner can review this concrete configuration now; acceptance remains pending its measured Desktop qualification and the README owner-acceptance transaction. Keep the accepted Context delegation law unchanged until a separate accepted amendment.
+Only qiven-docs is writable in this PR round. The qualification has **not yet been performed**: no global ZCode profile has been installed, loaded or tested, and this proposal makes no claim that it was. The owner can review this concrete configuration now; acceptance remains pending its measured Desktop qualification and the README owner-acceptance transaction. Keep the accepted Context delegation law unchanged until a separate accepted amendment.
