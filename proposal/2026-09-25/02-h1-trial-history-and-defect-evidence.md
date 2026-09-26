@@ -1,7 +1,7 @@
 # Evidence audit: MVP-4 H1 incidents, path sites, and claim limits
 
 > Deliberation evidence for [ADR-0054](00-adr-0054-typed-identity-law.md) and [ADR-0055](01-adr-0055-simulated-loop-acceptance.md). This document separates published observations from engineering inference. It does not itself amend canonical records.
-> Read-only source snapshots checked for this round: `qiven-context@c73b2288bb1dabfa87a5c222eeab0d7bae6ac2ff`, `qiven-runtime@7b3ce515774de8f146aefc066ffbf0e69e2e33a4`, `qiven-foundation@9045feee0c81fa247dec49407e51e891fe427744` (2026-09-25 UTC).
+> Read-only source snapshots checked for this audit: `qiven-context@c73b2288bb1dabfa87a5c222eeab0d7bae6ac2ff`, `qiven-runtime@7b3ce515774de8f146aefc066ffbf0e69e2e33a4`, `qiven-foundation@9045feee0c81fa247dec49407e51e891fe427744` (2026-09-25 UTC).
 
 ## 1. Numbered owner-live trial record
 
